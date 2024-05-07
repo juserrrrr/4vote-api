@@ -24,19 +24,19 @@
 
 ## 🗒️ Sobre o Projeto
 
-Este projeto é um sistema de Votação/Enquete online que permite aos usuários criar e participar de Votações/Enquetes de forma segura e transparente. 
-O sistema inclui uma funcionalidade de auditoria baseada em hash MD5 para garantir a integridade dos votos.
+Este projeto é um sistema de votações/enquetes online que permite aos usuários criar e participar de votações/enquetes de forma segura e transparente. 
+Inclui também uma funcionalidade de auditoria baseada em **hash MD5** para garantir a integridade dos votos.
 
 
 ## ⚙️ Funcionalidades
 
-1. **Autenticação de Usuário**: O sistema permite que os usuários se autentiquem para acessar as funcionalidades de criação de votações/enquetes e de participação.  
-2. **Criação de Votação/Enquete**: Os usuários podem criar votações/enquetes, fornecendo um título, uma descrição, opções de resposta e uma data limite para votação. 
-3. **Geração de Código Único**: Após a criação da votação/enquete, o sistema gera um código único que será usado para acessar a votação/enquete.
-4. **Participação na Votação/Enquete**: Os usuários podem participar de votações/enquetes usando o código gerado. Eles devem selecionar uma opção de resposta e fornecer seu endereço de e-mail para verificação.
-5. **Auditoria por Hash MD5**: Cada voto registrado no sistema é associado a uma hash MD5 única, gerada com base nos dados do voto. Essa hash é enviada por e-mail para o eleitor como uma forma de verificar seu voto.
-6. **Finalização da Votação/Enquete**: O criador da votação/enquete pode finalizá-la manualmente ou automaticamente após a data limite estabelecida. Após a finalização, a votação/enquete não pode ser reaberta e os resultados finais são mostrados ao criador.
-7. **Segurança e Confidencialidade**: O sistema é desenvolvido com medidas de segurança robustas para proteger os dados dos usuários e garantir a confidencialidade das votações/enquetes.
+1. **Autenticação de usuário**;
+2. **Criação de votações/enquetes**;
+3. **Geração de código único para acesso da votação/enquete**; 
+4. **Participação na votação/enquete**; 
+5. **Auditoria por hash MD5**;
+6. **Finalização da votação/enquete**; 
+7. **Segurança e confidencialidade**; 
 
 
 ## 🎨 Layout
@@ -56,25 +56,16 @@ O sistema inclui uma funcionalidade de auditoria baseada em hash MD5 para garant
   <img align="center" width=40% src="https://github.com/brendatrindade/4vote-Readme/blob/main/imagens/login.jpg">
  </div>
 
-Após clicar em “Entrar” e acessar a conta inserindo o email e a senha cadastrados, o usuário acessa o sistema conectado em sua conta o que lhe permite ter acesso a todas as funcionalidades bem como criar enquetes/votações, participar e consultar o resultado final destas.
+Tela de login. Nesta tela, é possível não apenas acessar o sistema, como se cadastrar e fazer a recuperação de senha. 
  
 ##
 
 <div align="center">  
   <img align="center" width=40% src="https://github.com/brendatrindade/4vote-Readme/blob/main/imagens/enquete.jpg">
  </div>
-Após clicar em “Criar” e “Criar Enquete”, o usuário é direcionado para uma nova tela onde realiza o preenchimento dos dados referentes à enquete que deseja criar. Os campos a serem preenchidos são:   
 
-* O título da enquete, que será apresentado aos participantes;    
-* A data limite para encerramento da enquete;    
-* O tipo de acesso: público ou privado, que define quem pode participar da enquete. Sendo público aberto a todos ou privado para um grupo restrito;  
-* A descrição da enquete, que fornece mais detalhes sobre o seu propósito;    
-* A pergunta da enquete, que é a questão principal a ser respondida;    
-* As respectivas opções de resposta, que são as alternativas que os participantes podem escolher;   
-* Imagens associadas a estas opções de resposta, que ajudam a ilustrar cada alternativa.    
+ Tela de criação de enquetes. Aqui, é possível criar uma enquete que será compartilhada com o público, fornecendo dados como: título, data limite, privacidade, descrições e imagens.
 
-O usuário tem ainda a opção de criar novas perguntas para compor a enquete clicando em “Nova Pergunta”. Cada pergunta adicional segue o mesmo formato da inicial, incluindo a nova pergunta, as opções de resposta e as imagens associadas. Se o usuário desejar remover uma pergunta adicionada, pode clicar no botão “Remover Pergunta”. Da mesma forma, o usuário pode remover uma opção de resposta clicando no “x” ao lado de cada opção. 
-Após preencher todos os campos e adicionar todas as perguntas desejadas, o usuário pode clicar no botão “Criar Enquete” para confirmar sua criação. Uma vez criada, a enquete fica disponível para os participantes de acordo com o tipo de acesso definido.
 
 ##
 
@@ -82,8 +73,7 @@ Após preencher todos os campos e adicionar todas as perguntas desejadas, o usu�
   <img align="center" width=40% src="https://github.com/brendatrindade/4vote-Readme/blob/main/imagens/responderEnquete.jpg">
 </div>
 
-Após clicar em “Participar” e no caso de enquetes privadas inserir o código da enquete, ou selecionar alguma enquete pública, o usuário é direcionado para uma nova tela onde pode visualizar as informações da enquete e participar da mesma.        
-Para responder a enquete, o usuário deve clicar sobre a alternativa de sua preferência para selecioná-la e, em seguida, clicar em “Responder” para confirmar sua resposta. Isso permite que os usuários participem de enquetes de maneira fácil e intuitiva, garantindo que suas respostas sejam registradas corretamente. Uma vez que a resposta é registrada, não pode ser alterada, garantindo a integridade da enquete.
+Tela de respostas às enquetes. Aqui é possível que o usuário escolha a opção desejada para votar. No caso de **enquetes** é possível escolher **mais de uma** resposta. Já em **votações** é necessário escolher **apenas uma** opção.  
 
 
 ##
@@ -92,14 +82,13 @@ Para responder a enquete, o usuário deve clicar sobre a alternativa de sua pref
   <img align="center" width=40% src="https://github.com/brendatrindade/4vote-Readme/blob/main/imagens/resultadoEnquete.jpg">
 </div>
 
-Após encerrado o período de resolução da enquete, o usuário pode verificar o resultado. Esta tela oferece uma visão clara e compreensível dos resultados, onde é possível ver as informações detalhadas e a conclusão da enquete. A visualização do resultado inclui:
+Tela de exibição dos resultados. Aqui, após o período de encerramento da votação/enquete, o usuário poderá ver as opções vencedoras. Dentre os resultados, inclui:   
 
 * Alternativa destaque: A alternativa que recebeu o maior número de respostas é destacada, permitindo ao usuário identificar rapidamente o resultado de maior preferência da enquete.
 * Resultados individuais: Cada opção de resposta é exibida juntamente com a porcentagem e a quantidade total de respostas recebidas. 
 * Total de respostas: O total geral de respostas recebidas em toda a enquete é exibido no final da tela, permitindo ao usuário identificar o público participante da enquete.
 
-Em caso de múltiplas perguntas é possível navegar entre cada uma delas, clicando no seu número correspondente ao final da tela ou em “Próximo” / ”Anterior”, visualizando seus resultados e alternativas individualmente. Vale ressaltar que os resultados só podem ser visualizados após o encerramento da enquete, garantindo a justiça e a integridade do seu processo. 
-
+Em caso de múltiplas perguntas é possível navegar entre cada uma delas, clicando no seu número correspondente ao final da tela ou em “Próximo” / ”Anterior”, visualizando seus resultados e alternativas individualmente. Os resultados só podem ser visualizados após o encerramento da votação/enquete. 
 
 
 ## 🛠 Tecnologias
