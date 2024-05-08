@@ -129,6 +129,5 @@ Este projeto é decorrente da disciplina EXA613 - MI de Engenharia de Software -
   <img align="center" width=40% src="https://github.com/brendatrindade/4vote-Readme/blob/main/imagens/nexustech%20principal.png">
  </div>
 
-<img width=100% src="https://capsule-render.vercel.app/api?type=waving&color=052A76&height=120&section=footer"/>
+<img width=100% src="https://capsule-render.vercel.app/api?type=waving&color=052A76&height=120&section=footer"/
 
-Cores: primaria - 052A76 secundaria - 02A6F4
