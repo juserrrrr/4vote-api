@@ -1,6 +1,7 @@
+import { PartialType } from '@nestjs/mapped-types';
 import { IsInt, IsNotEmpty, IsOptional } from 'class-validator';
 
-export class UpdateParticipacaoDto {
+export class CreatepartipacaoDto {
   @IsInt()
   @IsNotEmpty()
   @IsOptional()
@@ -11,3 +12,5 @@ export class UpdateParticipacaoDto {
   @IsOptional()
   pesquisa_id?: number;
 }
+
+export class UpdateParticipacaoDto extends PartialType(CreatepartipacaoDto) {}

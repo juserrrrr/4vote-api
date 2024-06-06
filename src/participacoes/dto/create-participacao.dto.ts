@@ -7,5 +7,9 @@ export class CreateParticipacaoDto {
 
   @IsInt()
   @IsNotEmpty()
+  id: number;
+
+  @IsInt()
+  @IsNotEmpty()
   pesquisa_id: number;
 }
