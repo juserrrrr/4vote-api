@@ -13,8 +13,8 @@ export class ParcipacoesController {
   }
 
   @Get(':id')
-  getById(@Param('id', new ParseIntPipe()) id: string) {
-    return this.participacaoService.getById(Number(id));
+  getById(@Param('id', new ParseIntPipe()) id: number) {
+    return this.participacaoService.getById(id);
   }
 
   @Post()
@@ -23,12 +23,12 @@ export class ParcipacoesController {
   }
 
   @Put(':id')
-  update(@Param('id', new ParseIntPipe()) id: string, @Body() updateParticipacaoDto: UpdateParticipacaoDto) {
-    return this.participacaoService.update(Number(id), updateParticipacaoDto);
+  update(@Param('id', new ParseIntPipe()) id: number, @Body() updateParticipacaoDto: UpdateParticipacaoDto) {
+    return this.participacaoService.update(id, updateParticipacaoDto);
   }
 
   @Delete(':id')
-  delete(@Param('id', new ParseIntPipe()) id: string) {
-    return this.participacaoService.delete(Number(id));
+  delete(@Param('id', new ParseIntPipe()) id: number) {
+    return this.participacaoService.delete(id);
   }
 }
