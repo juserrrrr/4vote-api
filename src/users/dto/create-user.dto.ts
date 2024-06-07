@@ -18,5 +18,6 @@ export class CreateUserDto {
   senha: string;
 
   @IsOptional()
+  @IsString()
   URLimagem?: string;
 }
