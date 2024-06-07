@@ -1,10 +1,9 @@
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { ParticipacoesModule } from './participacoes/participacoes.module';
 
 @Module({
-  imports: [ParticipacoesModule],
+  imports: [],
   controllers: [AppController],
   providers: [AppService],
 })
