@@ -42,7 +42,7 @@ model Participacao {
 model Pergunta {
   id          Int      @id @default(autoincrement())
   texto       String   @db.VarChar(255)
-  URLimagem   String   @db.VarChar(255)
+  URLimagem   String?  @db.VarChar(255)
   pesquisa_id Int
   Opcao       Opcao[]
   Pesquisa    Pesquisa @relation(fields: [pesquisa_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "Pesquisa_Pergunta")
@@ -53,14 +53,14 @@ model Pergunta {
 model Pesquisa {
   id           Int            @id @default(autoincrement())
   titulo       String         @db.VarChar(255)
-  codigo       String         @db.VarChar(11)
-  dataCriacao  DateTime       @default(now())
+  codigo       String         @unique(map: "Pesquisa_ak_codigo") @db.VarChar(11)
+  dataCriacao  DateTime       @db.DateTime(0)
   dataTermino  DateTime       @db.DateTime(0)
   ehPublico    Boolean
   descricao    String?        @db.Text
   criador      Int
   arquivado    Boolean
-  URLimagem    String         @db.VarChar(255)
+  URLimagem    String?        @db.VarChar(255)
   ehVotacao    Boolean
   Participacao Participacao[]
   Pergunta     Pergunta[]
@@ -72,7 +72,7 @@ model Pesquisa {
 
 model Tag {
   id           Int            @id @default(autoincrement())
-  nome         String         @db.VarChar(255)
+  nome         String         @unique(map: "Tag_ak_nome") @db.VarChar(255)
   Tag_Pesquisa Tag_Pesquisa[]
 }
 
@@ -89,8 +89,8 @@ model Tag_Pesquisa {
 model Usuario {
   id           Int            @id @default(autoincrement())
   nome         String         @db.VarChar(255)
-  email        String         @db.VarChar(255)
-  cpf          String         @unique(map: "cpf") @db.VarChar(14)
+  email        String         @unique(map: "Usuario_ak_email") @db.VarChar(255)
+  cpf          String         @unique(map: "Usuario_ak_cpf") @db.VarChar(14)
   senha        String         @db.VarChar(255)
   URLimagem    String?        @db.VarChar(255)
   Participacao Participacao[]
@@ -99,7 +99,7 @@ model Usuario {
 
 model Voto {
   id           Int            @id @default(autoincrement())
-  data         DateTime       @default(now())
+  data         DateTime       @db.DateTime(0)
   hash         String         @db.VarChar(255)
   Opcao_Votada Opcao_Votada[]
 }
