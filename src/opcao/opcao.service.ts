@@ -1,5 +1,6 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { CreateOpcaoDto } from './dto/create-opcao.dto';
+import { UpdateOpcaoDto } from './dto/update-opcao.dto';
 
 export interface Opcao {
   id: number;
@@ -9,38 +10,23 @@ export interface Opcao {
 
 @Injectable()
 export class OpcaoService {
-  private opcoes: Opcao[] = [];
-  private idCounter = 1;
-
-  create(createOpcaoDto: CreateOpcaoDto): Opcao {
-    const newOpcao = { id: this.idCounter++, ...createOpcaoDto };
-    this.opcoes.push(newOpcao);
-    return newOpcao;
+  create(createOpcaoDto: CreateOpcaoDto): string {
+    return `Opção criada com sucesso com o id ${createOpcaoDto.id.toString}`;
   }
 
-  findAll(): Opcao[] {
-    return this.opcoes;
+  findAll(): string {
+    return `Aqui retorna todas as opções`;
   }
 
-  findOne(id: number): Opcao {
-    const opcao = this.opcoes.find((opcao) => opcao.id === id);
-    if (!opcao) {
-      throw new NotFoundException('Opção não encontrada.');
-    }
-    return opcao;
+  findOne(id: number): string {
+    return `Aqui retorna a opção com o id ${id.toString}`;
   }
 
-  update(id: number, updateOpcaoDto: Partial<CreateOpcaoDto>): Opcao {
-    const opcao = this.findOne(id);
-    Object.assign(opcao, updateOpcaoDto);
-    return opcao;
+  update(id: number, updateOpcaoDto: UpdateOpcaoDto): string {
+    return `Aqui retorna a opção alterada com sucesso do id ${id.toString()} para as novas informações do objeto com o id ${updateOpcaoDto.id.toString}`;
   }
 
-  remove(id: number): void {
-    const index = this.opcoes.findIndex((opcao) => opcao.id === id);
-    if (index === -1) {
-      throw new NotFoundException('Opção não encontrada.');
-    }
-    this.opcoes.splice(index, 1);
+  remove(id: number): string {
+    return `Opcao do id ${id.toString} deletada com sucesso`;
   }
 }

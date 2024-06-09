@@ -1,13 +1,14 @@
 import { Controller, Get, Post, Body, Param, Put, Delete } from '@nestjs/common';
 import { OpcaoService } from './opcao.service';
 import { CreateOpcaoDto } from './dto/create-opcao.dto';
+import { ValidationPipe } from '@nestjs/common';
 
 @Controller('opcoes')
 export class OpcaoController {
-  constructor(private readonly opcaoService: OpcaoService) {}
+  constructor(private readonly opcaoService: OpcaoService) { }
 
   @Post()
-  create(@Body() createOpcaoDto: CreateOpcaoDto) {
+  create(@Body(new ValidationPipe()) createOpcaoDto: CreateOpcaoDto) {
     return this.opcaoService.create(createOpcaoDto);
   }
 
@@ -22,7 +23,7 @@ export class OpcaoController {
   }
 
   @Put(':id')
-  update(@Param('id') id: string, @Body() updateOpcaoDto: Partial<CreateOpcaoDto>) {
+  update(@Param('id') id: string, @Body(new ValidationPipe()) updateOpcaoDto: Partial<CreateOpcaoDto>) {
     return this.opcaoService.update(+id, updateOpcaoDto);
   }
 
