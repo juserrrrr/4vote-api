@@ -24,7 +24,7 @@ export class OpcaoController {
   }
 
   @Put(':id')
-  update(@Param('id') id: string, @Body(new ValidationPipe()) updateOpcaoDto: Partial<UpdateOpcaoDto>) {
+  update(@Param('id') id: string, @Body(new ValidationPipe()) updateOpcaoDto: UpdateOpcaoDto) {
     return this.opcaoService.update(+id, updateOpcaoDto);
   }
 
