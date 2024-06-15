@@ -3,6 +3,7 @@ import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { UsuariosService } from 'src/usuarios/usuarios.service';
 import { compare } from 'bcrypt';
+import { AuthLoginDto } from './dto/auth-login.dto';
 
 @Injectable()
 export class AuthService {
@@ -12,13 +13,13 @@ export class AuthService {
     private readonly usuarioService: UsuariosService,
   ) {}
 
-  async login(emailUsuario: string, senhaUsuario: string) {
-    const usuario = await this.prisma.usuario.findUnique({ where: { email: emailUsuario } });
-    if (!usuario || !compare(senhaUsuario, usuario.senha)) {
+  async login(loginDto: AuthLoginDto) {
+    const usuario = await this.prisma.usuario.findUnique({ where: { email: loginDto.email } });
+    if (!usuario || !compare(loginDto.senha, usuario.senha)) {
       throw new UnauthorizedException('Credenciais inválidas');
     }
     return {
-      access_token: this.jwtService.sign(
+      accessToken: this.jwtService.sign(
         {
           sub: usuario.id,
           nome: usuario.nome,
