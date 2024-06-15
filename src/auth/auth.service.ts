@@ -17,5 +17,18 @@ export class AuthService {
     if (!usuario || !compare(senhaUsuario, usuario.senha)) {
       throw new UnauthorizedException('Credenciais inválidas');
     }
+    return {
+      access_token: this.jwtService.sign(
+        {
+          sub: usuario.id,
+          nome: usuario.nome,
+        },
+        {
+          expiresIn: '1d',
+          subject: String(usuario.id),
+          issuer: '4voteSignature',
+        },
+      ),
+    };
   }
 }
