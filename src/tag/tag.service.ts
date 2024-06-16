@@ -2,11 +2,6 @@ import { Injectable } from '@nestjs/common';
 import { CreateTagDto } from './dto/create-tag.dto';
 import { UpdateTagDto } from './dto/update-tag.dto';
 
-export interface Tag {
-  id: number;
-  nome: string;
-}
-
 @Injectable()
 export class TagService {
   create(createTagDto: CreateTagDto): string {

@@ -1,13 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { CreateVotoDto } from './dto/create-voto.dto';
 import { UpdateVotoDto } from './dto/update-voto.dto';
-
-export interface Voto {
-  id: number;
-  data: string;
-  hash: string;
-}
-
 @Injectable()
 export class VotoService {
   create(createVotoDto: CreateVotoDto): string {

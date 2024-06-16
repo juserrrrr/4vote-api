@@ -2,11 +2,6 @@ import { Injectable } from '@nestjs/common';
 import { CreateOpcaoVotadaDto } from './dto/create-opcaovotada.dto';
 import { UpdateOpcaoVotadaDto } from './dto/update-opcaovotada.dto';
 
-export interface Tag {
-  id_opcao: number;
-  id_voto: number;
-}
-
 @Injectable()
 export class OpcaoVotadaService {
   create(createOpcaoVotadaDto: CreateOpcaoVotadaDto): string {
