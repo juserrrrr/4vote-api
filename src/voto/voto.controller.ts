@@ -6,30 +6,30 @@ import { ValidationPipe } from '@nestjs/common';
 
 @Controller('voto')
 export class VotoController {
-  constructor(private readonly opcaoService: VotoService) {}
+  constructor(private readonly votoService: VotoService) {}
 
   @Post()
   create(@Body(new ValidationPipe()) createVotoDto: CreateVotoDto) {
-    return this.opcaoService.create(createVotoDto);
+    return this.votoService.create(createVotoDto);
   }
 
   @Get()
   findAll() {
-    return this.opcaoService.findAll();
+    return this.votoService.findAll();
   }
 
   @Get(':id')
   findOne(@Param('id') id: number) {
-    return this.opcaoService.findOne(+id);
+    return this.votoService.findOne(+id);
   }
 
   @Put(':id')
   update(@Param('id') id: string, @Body(new ValidationPipe()) updateVotoDto: UpdateVotoDto) {
-    return this.opcaoService.update(+id, updateVotoDto);
+    return this.votoService.update(+id, updateVotoDto);
   }
 
   @Delete(':id')
   remove(@Param('id') id: string) {
-    return this.opcaoService.remove(+id);
+    return this.votoService.remove(+id);
   }
 }

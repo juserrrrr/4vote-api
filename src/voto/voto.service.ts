@@ -15,11 +15,11 @@ export class VotoService {
   }
 
   findAll(): string {
-    return `Aqui retorna todas as opções`;
+    return `Aqui retorna todos os votos`;
   }
 
   findOne(id: number): string {
-    return `Aqui retorna a opção com o id ${id.toString}`;
+    return `Aqui retorna o voto com o id ${id.toString}`;
   }
 
   update(id: number, updateVotoDto: UpdateVotoDto): string {
@@ -27,6 +27,6 @@ export class VotoService {
   }
 
   remove(id: number): string {
-    return `Voto do id ${id.toString} deletada com sucesso`;
+    return `Voto do id ${id.toString} deletado com sucesso`;
   }
 }
