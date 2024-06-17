@@ -8,31 +8,24 @@ export class UsuariosService {
   constructor(private readonly prisma: PrismaService) {}
 
   async create(createUsuarioDto: CreateUsuarioDto) {
-    return this.prisma.usuario.create({
-      data: createUsuarioDto,
-    });
+    return await this.prisma
+      .$executeRaw`INSERT INTO Usuario (nome, email, cpf, senha, URLimagem) VALUES (${createUsuarioDto.nome}, ${createUsuarioDto.email}, ${createUsuarioDto.cpf}, ${createUsuarioDto.senha}, ${createUsuarioDto.URLimagem})`;
   }
 
-  async findAll() {
-    return this.prisma.usuario.findMany();
+  async getAll() {
+    return await this.prisma.$queryRaw`SELECT * FROM Usuario`;
   }
 
-  async findOne(id: number) {
-    return this.prisma.usuario.findUnique({
-      where: { id },
-    });
+  async getOne(id: number) {
+    return await this.prisma.$queryRaw`SELECT * FROM Usuario WHERE id = ${id}`;
   }
 
   async update(id: number, updateUsuarioDto: UpdateUsuarioDto) {
-    return this.prisma.usuario.update({
-      where: { id },
-      data: updateUsuarioDto,
-    });
+    return await this.prisma
+      .$executeRaw`UPDATE Usuario SET nome = ${updateUsuarioDto.nome}, email = ${updateUsuarioDto.email}, cpf = ${updateUsuarioDto.cpf}, senha = ${updateUsuarioDto.senha}, URLimagem = ${updateUsuarioDto.URLimagem} WHERE id = ${id}`;
   }
 
   async remove(id: number) {
-    return this.prisma.usuario.delete({
-      where: { id },
-    });
+    return await this.prisma.$executeRaw`DELETE FROM Usuario WHERE id = ${id}`;
   }
 }
