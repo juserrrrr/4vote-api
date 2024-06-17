@@ -13,7 +13,7 @@ export class AuthGuard implements CanActivate {
       throw new UnauthorizedException('Token não encontrado');
     }
     try {
-      const payload = this.jwtService.verify(token, { issuer: '4voteSignature' });
+      const payload = this.jwtService.verify(token, { issuer: 'Assinatura4Vote' });
       request.payload = payload;
     } catch {
       throw new UnauthorizedException('Token inválido');
