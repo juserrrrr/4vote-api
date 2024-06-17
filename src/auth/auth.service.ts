@@ -3,8 +3,8 @@ import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { UsuariosService } from 'src/usuarios/usuarios.service';
 import { compare, genSalt, hash } from 'bcrypt';
-import { AuthLoginDto } from './dto/auth-login.dto';
 import { AuthCadastroDto } from './dto/auth-cadastro.dto';
+import { AuthEntrarDto } from './dto/auth-entrar.dto';
 
 @Injectable()
 export class AuthService {
@@ -23,16 +23,16 @@ export class AuthService {
       {
         expiresIn: '1d',
         subject: String(id),
-        issuer: '4voteSignature',
+        issuer: 'Assinatura4Vote',
       },
     );
 
     return { accessToken };
   }
 
-  async login(loginDto: AuthLoginDto) {
-    const usuario = await this.prisma.usuario.findUnique({ where: { email: loginDto.email } });
-    if (!usuario || !compare(loginDto.senha, usuario.senha)) {
+  async entrar(entrarDto: AuthEntrarDto) {
+    const usuario = await this.prisma.usuario.findUnique({ where: { email: entrarDto.email } });
+    if (!usuario || !compare(entrarDto.senha, usuario.senha)) {
       throw new UnauthorizedException('Credenciais inválidas');
     }
     const payload = { id: usuario.id, nome: usuario.nome };
