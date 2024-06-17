@@ -12,11 +12,11 @@ export class UsuariosService {
       .$executeRaw`INSERT INTO Usuario (nome, email, cpf, senha, URLimagem) VALUES (${createUsuarioDto.nome}, ${createUsuarioDto.email}, ${createUsuarioDto.cpf}, ${createUsuarioDto.senha}, ${createUsuarioDto.URLimagem})`;
   }
 
-  async getAll() {
+  async findAll() {
     return await this.prisma.$queryRaw`SELECT * FROM Usuario`;
   }
 
-  async getOne(id: number) {
+  async findOne(id: number) {
     return await this.prisma.$queryRaw`SELECT * FROM Usuario WHERE id = ${id}`;
   }
 
