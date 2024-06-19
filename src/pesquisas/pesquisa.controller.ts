@@ -4,7 +4,7 @@ import { CreatePesquisaDto } from './dto/create-pesquisa.dto';
 import { UpdatePesquisaDto } from './dto/update-pesquisa.dto';
 
 @Controller('pesquisas')
-export class PesquisaControle {
+export class PesquisaController {
   constructor(private readonly pesquisaService: PesquisaService) {}
 
   @Post()
