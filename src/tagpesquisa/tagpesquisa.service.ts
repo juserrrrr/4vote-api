@@ -1,13 +1,8 @@
 import { Injectable } from '@nestjs/common';
-import { CreateTagPesquisaDto } from './dto/create-tagpesquisa.dto';
 import { UpdateTagPesquisaDto } from './dto/update-tagpesquisa.dto';
 
 @Injectable()
 export class TagPesquisaService {
-  create(createTagPesquisaDto: CreateTagPesquisaDto): string {
-    return `Tag de pesquisa criada com sucesso com o id ${createTagPesquisaDto.id.toString}`;
-  }
-
   findAll(): string {
     return `Aqui retorna todas as Tags de pesquisa`;
   }
