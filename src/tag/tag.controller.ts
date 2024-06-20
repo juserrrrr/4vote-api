@@ -1,6 +1,5 @@
-import { Controller, Get, Post, Body, Param, Put, Delete } from '@nestjs/common';
+import { Controller, Get, Body, Param, Put, Delete } from '@nestjs/common';
 import { TagService } from './tag.service';
-import { CreateTagDto } from './dto/create-tag.dto';
 import { UpdateTagDto } from './dto/update-tag.dto';
 import { ValidationPipe } from '@nestjs/common';
 
