@@ -1,12 +1,7 @@
 import { Injectable } from '@nestjs/common';
-import { CreateVotoDto } from './dto/create-voto.dto';
 import { UpdateVotoDto } from './dto/update-voto.dto';
 @Injectable()
 export class VotoService {
-  create(createVotoDto: CreateVotoDto): string {
-    return `Voto criado com sucesso com o id ${createVotoDto.id.toString}`;
-  }
-
   findAll(): string {
     return `Aqui retorna todos os votos`;
   }
