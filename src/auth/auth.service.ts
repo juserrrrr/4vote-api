@@ -14,7 +14,7 @@ export class AuthService {
     private readonly usuarioService: UsuariosService,
   ) {}
 
-  criarToken({ id, nome }: { id: Number; nome: string }) {
+  criarToken({ id, nome }: { id: number; nome: string }) {
     const accessToken = this.jwtService.sign(
       {
         id,
@@ -22,6 +22,7 @@ export class AuthService {
       },
       {
         expiresIn: '1d',
+        secret: process.env.JWT_SECRET,
         subject: String(id),
         issuer: 'Assinatura4Vote',
       },
@@ -31,7 +32,9 @@ export class AuthService {
   }
 
   async entrar(entrarDto: AuthEntrarDto) {
-    const usuario = await this.prisma.usuario.findUnique({ where: { email: entrarDto.email } });
+    const usuario = await this.prisma.usuario.findUnique({
+      where: { email: entrarDto.email },
+    });
     if (!usuario || !compare(entrarDto.senha, usuario.senha)) {
       throw new UnauthorizedException('Credenciais inválidas');
     }
