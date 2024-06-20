@@ -22,7 +22,6 @@ export class AuthService {
       },
       {
         expiresIn: '1d',
-        secret: process.env.JWT_SECRET,
         subject: String(id),
         issuer: 'Assinatura4Vote',
       },
