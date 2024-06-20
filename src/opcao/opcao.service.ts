@@ -1,5 +1,4 @@
 import { Injectable } from '@nestjs/common';
-import { CreateOpcaoDto } from './dto/create-opcao.dto';
 import { UpdateOpcaoDto } from './dto/update-opcao.dto';
 
 export interface Opcao {
@@ -10,10 +9,6 @@ export interface Opcao {
 
 @Injectable()
 export class OpcaoService {
-  create(createOpcaoDto: CreateOpcaoDto): string {
-    return `Opção criada com sucesso com o id ${createOpcaoDto.id.toString}`;
-  }
-
   findAll(): string {
     return `Aqui retorna todas as opções`;
   }

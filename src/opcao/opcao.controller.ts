@@ -1,6 +1,5 @@
-import { Controller, Get, Post, Body, Param, Put, Delete, UseGuards } from '@nestjs/common';
+import { Controller, Get, Body, Param, Put, Delete, UseGuards } from '@nestjs/common';
 import { OpcaoService } from './opcao.service';
-import { CreateOpcaoDto } from './dto/create-opcao.dto';
 import { UpdateOpcaoDto } from './dto/update-opcao.dto';
 import { ValidationPipe } from '@nestjs/common';
 import { AuthGuard } from 'src/auth/auth.guard';
@@ -9,11 +8,6 @@ import { AuthGuard } from 'src/auth/auth.guard';
 @Controller('opcoes')
 export class OpcaoController {
   constructor(private readonly opcaoService: OpcaoService) {}
-
-  @Post()
-  create(@Body(new ValidationPipe()) createOpcaoDto: CreateOpcaoDto) {
-    return this.opcaoService.create(createOpcaoDto);
-  }
 
   @Get()
   findAll() {
