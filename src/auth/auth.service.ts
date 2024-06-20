@@ -14,7 +14,7 @@ export class AuthService {
     private readonly usuarioService: UsuariosService,
   ) {}
 
-  criarToken({ id, nome }: { id: Number; nome: string }) {
+  criarToken({ id, nome }: { id: number; nome: string }) {
     const accessToken = this.jwtService.sign(
       {
         id,
