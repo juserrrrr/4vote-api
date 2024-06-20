@@ -31,7 +31,9 @@ export class AuthService {
   }
 
   async entrar(entrarDto: AuthEntrarDto) {
-    const usuario = await this.prisma.usuario.findUnique({ where: { email: entrarDto.email } });
+    const usuario = await this.prisma.usuario.findUnique({
+      where: { email: entrarDto.email },
+    });
     if (!usuario || !compare(entrarDto.senha, usuario.senha)) {
       throw new UnauthorizedException('Credenciais inválidas');
     }
