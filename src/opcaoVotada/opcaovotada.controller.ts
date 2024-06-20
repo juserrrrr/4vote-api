@@ -1,17 +1,11 @@
-import { Controller, Get, Post, Body, Param, Put, Delete } from '@nestjs/common';
+import { Controller, Get, Body, Param, Put, Delete } from '@nestjs/common';
 import { OpcaoVotadaService } from './opcaovotada.service';
-import { CreateOpcaoVotadaDto } from './dto/create-opcaovotada.dto';
 import { UpdateOpcaoVotadaDto } from './dto/update-opcaovotada.dto';
 import { ValidationPipe } from '@nestjs/common';
 
 @Controller('opcaovotada')
 export class OpcaoVotadaController {
   constructor(private readonly opcaoVotadaService: OpcaoVotadaService) {}
-
-  @Post()
-  create(@Body(new ValidationPipe()) createOpcaoVotadaDto: CreateOpcaoVotadaDto) {
-    return this.opcaoVotadaService.create(createOpcaoVotadaDto);
-  }
 
   @Get()
   findAll() {

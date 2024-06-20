@@ -1,13 +1,8 @@
 import { Injectable } from '@nestjs/common';
-import { CreateOpcaoVotadaDto } from './dto/create-opcaovotada.dto';
 import { UpdateOpcaoVotadaDto } from './dto/update-opcaovotada.dto';
 
 @Injectable()
 export class OpcaoVotadaService {
-  create(createOpcaoVotadaDto: CreateOpcaoVotadaDto): string {
-    return `Tag criada com sucesso com o id ${createOpcaoVotadaDto.id_opcao.toString}`;
-  }
-
   findAll(): string {
     return `Aqui retorna todas as opções votadas`;
   }
