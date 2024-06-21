@@ -13,8 +13,4 @@ export class TagService {
   async findAll() {
     return await this.prisma.$queryRaw`SELECT * FROM Tag`;
   }
-
-  async findOne(nome: string) {
-    return await this.prisma.$queryRaw`SELECT * FROM Tag WHERE nome = ${nome}`;
-  }
 }
