@@ -4,7 +4,7 @@
   "routes": [
     {
       "src": "/(.*)",
-      "dest": "main.ts",
+      "dest": "main.js",
       "methods": ["GET", "POST", "PUT", "DELETE"]
     }
   ]
