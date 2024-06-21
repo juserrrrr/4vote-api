@@ -18,10 +18,10 @@ export class PesquisaService {
   }
 
   async getById(id: number) {
-    const pesquisas = await this.prisma.pesquisa.findUnique({
+    const pesquisa = await this.prisma.pesquisa.findUnique({
       where: { id },
     });
-    return pesquisas;
+    return pesquisa;
   }
 
   async update(body: UpdatePesquisaDto, id: number) {
