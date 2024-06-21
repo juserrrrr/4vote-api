@@ -16,11 +16,11 @@ import { OpcaoVotadaModule } from './opcaoVotada/opcaovotada.module';
   imports: [
     // AuthModule,
     // OpcaoModule,
-    OpcaoVotadaModule,
+    // OpcaoVotadaModule,
     ParticipacoesModule,
     PerguntasModule,
     PesquisaModule,
-    TagModule,
+    // TagModule,
     TagPesquisaModule,
     // UsuariosModule,
     VotoModule,
