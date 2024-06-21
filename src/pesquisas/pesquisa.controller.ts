@@ -1,8 +1,10 @@
-import { Controller, Get, Post, Delete, Patch, Body, Param, ParseIntPipe } from '@nestjs/common';
+import { Controller, Get, Post, Delete, Patch, Body, Param, ParseIntPipe, UseGuards } from '@nestjs/common';
 import { PesquisaService } from './pesquisa.service';
 import { CreatePesquisaDto } from './dto/create-pesquisa.dto';
 import { UpdatePesquisaDto } from './dto/update-pesquisa.dto';
+import { AuthGuard } from '../auth/auth.guard';
 
+@UseGuards(AuthGuard)
 @Controller('pesquisas')
 export class PesquisaController {
   constructor(private readonly pesquisaService: PesquisaService) {}
