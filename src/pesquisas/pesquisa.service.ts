@@ -7,26 +7,29 @@ import { PrismaService } from 'src/prisma/prisma.service';
 export class PesquisaService {
   constructor(private readonly prisma: PrismaService) {}
 
-  create(body: CreatePesquisaDto) {
-    const retorno = Object.entries(body)
-      .map(([chave, valor]) => `${chave}: ${valor}`)
-      .join(', ');
-    return `Pesquisa criada: ${retorno}`;
+  async create(body: CreatePesquisaDto) {
+    const pesquisa = await this.prisma.pesquisa.create({ data: body });
+    return pesquisa;
   }
 
-  findAll() {
-    return 'Retornando todas as pesquisas';
+  async findAll() {
+    const pesquisas = await this.prisma.pesquisa.findMany();
+    return pesquisas;
   }
 
-  getById(id: number) {
-    return `Pesquisa de id ${id} encontrada`;
+  async getById(id: number) {
+    const pesquisas = await this.prisma.pesquisa.findUnique({
+      where: { id },
+    });
+    return pesquisas;
   }
 
-  update(body: UpdatePesquisaDto, id: number) {
-    const retorno = Object.entries(body)
-      .map(([chave, valor]) => `${chave}: ${valor}`)
-      .join(', ');
-    return `Dados atualizados para pesquisa de ID ${id}:\n ${retorno}`;
+  async update(body: UpdatePesquisaDto, id: number) {
+    const pesquisaAtualizada = await this.prisma.pesquisa.update({
+      where: { id },
+      data: body,
+    });
+    return pesquisaAtualizada;
   }
 
   async updateArquivar(id: number) {
@@ -37,7 +40,11 @@ export class PesquisaService {
     return pesquisaArquivada;
   }
 
-  delete(id: number) {
-    return `Deletando pesquisa de ID ${id}`;
+  async delete(id: number) {
+    const pesquisaDeletada = await this.prisma.pesquisa.delete({
+      where: { id },
+    });
+
+    return pesquisaDeletada;
   }
 }
