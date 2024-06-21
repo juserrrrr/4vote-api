@@ -22,7 +22,7 @@ import { OpcaoVotadaModule } from './opcaoVotada/opcaovotada.module';
     PesquisaModule,
     TagModule,
     TagPesquisaModule,
-    UsuariosModule,
+    // UsuariosModule,
     VotoModule,
   ],
   controllers: [AppController],
