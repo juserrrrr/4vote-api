@@ -28,8 +28,8 @@ export class PesquisaController {
   }
 
   @Patch('arquivar/:id')
-  updateArquivar(@Body() body: UpdatePesquisaDto, @Param('id') id) {
-    return this.pesquisaService.updateArquivar(body, id);
+  updateArquivar(@Param('id', new ParseIntPipe()) id: number) {
+    return this.pesquisaService.updateArquivar(id);
   }
 
   @Delete(':id')

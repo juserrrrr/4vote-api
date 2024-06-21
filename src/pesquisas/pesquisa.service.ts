@@ -29,7 +29,7 @@ export class PesquisaService {
     return `Dados atualizados para pesquisa de ID ${id}:\n ${retorno}`;
   }
 
-  async updateArquivar(body: UpdatePesquisaDto, id: number) {
+  async updateArquivar(id: number) {
     const pesquisaArquivada = await this.prisma.pesquisa.update({
       where: { id },
       data: { arquivado: true },
