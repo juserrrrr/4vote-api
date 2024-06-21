@@ -17,7 +17,7 @@ import { OpcaoVotadaModule } from './opcaoVotada/opcaovotada.module';
     // AuthModule,
     // OpcaoModule,
     // OpcaoVotadaModule,
-    ParticipacoesModule,
+    // ParticipacoesModule,
     PerguntasModule,
     PesquisaModule,
     // TagModule,
