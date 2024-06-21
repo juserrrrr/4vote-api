@@ -27,9 +27,9 @@ export class PesquisaController {
     return this.pesquisaService.update(body, id);
   }
 
-  @Patch(':id')
+  @Patch('arquivar/:id')
   updateArquivar(@Body() body: UpdatePesquisaDto, @Param('id') id) {
-    return this.pesquisaService.update(body, id);
+    return this.pesquisaService.updateArquivar(body, id);
   }
 
   @Delete(':id')
