@@ -2,7 +2,7 @@ import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put, UseGuard
 import { CreateParticipacaoDto } from './dto/create-participacao.dto';
 import { UpdateParticipacaoDto } from './dto/update-participacao.dto';
 import { ParticipacaoService } from './participacao.service';
-import { AuthGuard } from 'src/auth/auth.guard';
+import { AuthGuard } from '../auth/auth.guard';
 
 @UseGuards(AuthGuard)
 @Controller('participacoes')

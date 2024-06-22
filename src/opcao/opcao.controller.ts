@@ -3,7 +3,7 @@ import { OpcaoService } from './opcao.service';
 import { CreateOpcaoDto } from './dto/create-opcao.dto';
 import { UpdateOpcaoDto } from './dto/update-opcao.dto';
 import { ValidationPipe } from '@nestjs/common';
-import { AuthGuard } from 'src/auth/auth.guard';
+import { AuthGuard } from '../auth/auth.guard';
 
 @UseGuards(AuthGuard)
 @Controller('opcoes')
