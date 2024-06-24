@@ -1,7 +1,6 @@
-import { Controller, Get, Post, Body, Param, Put, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body } from '@nestjs/common';
 import { TagService } from './tag.service';
 import { CreateTagDto } from './dto/create-tag.dto';
-import { UpdateTagDto } from './dto/update-tag.dto';
 import { ValidationPipe } from '@nestjs/common';
 
 @Controller('tag')
@@ -16,20 +15,5 @@ export class TagController {
   @Get()
   findAll() {
     return this.tagService.findAll();
-  }
-
-  @Get(':id')
-  findOne(@Param('id') id: number) {
-    return this.tagService.findOne(+id);
-  }
-
-  @Put(':id')
-  update(@Param('id') id: string, @Body(new ValidationPipe()) updateTagDto: UpdateTagDto) {
-    return this.tagService.update(+id, updateTagDto);
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.tagService.remove(+id);
   }
 }

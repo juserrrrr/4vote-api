@@ -2,7 +2,7 @@ import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@n
 import { PerguntasService } from './perguntas.service';
 import { CreatePerguntaDto } from './dto/create-pergunta.dto';
 import { UpdatePerguntaDto } from './dto/update-pergunta.dto';
-import { AuthGuard } from 'src/auth/auth.guard';
+import { AuthGuard } from '../auth/auth.guard';
 
 @UseGuards(AuthGuard)
 @Controller('perguntas')
