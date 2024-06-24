@@ -1,8 +1,13 @@
 import { Injectable } from '@nestjs/common';
+import { CreateParticipacaoDto } from './dto/create-participacao.dto';
 import { UpdateParticipacaoDto } from './dto/update-participacao.dto';
 
 @Injectable()
 export class ParticipacaoService {
+  create(createParticipacaoDto: CreateParticipacaoDto): string {
+    return `Participação criada com sucesso com o id ${createParticipacaoDto.id.toString}`;
+  }
+
   getAll(): string {
     return 'Retornando todas as participações';
   }
