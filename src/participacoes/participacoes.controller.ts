@@ -1,6 +1,6 @@
 import { Controller, Get, Param, ParseIntPipe, UseGuards } from '@nestjs/common';
 import { ParticipacaoService } from './participacao.service';
-import { AuthGuard } from 'src/auth/auth.guard';
+import { AuthGuard } from '../auth/auth.guard';
 
 @UseGuards(AuthGuard)
 @Controller('participacoes')
