@@ -8,9 +8,11 @@ export class UsuariosService {
   constructor(private readonly prisma: PrismaService) {}
 
   async create(createUsuarioDto: CreateUsuarioDto) {
-    return this.prisma.usuario.create({
-      data: createUsuarioDto,
-    });
+    try {
+      return await this.prisma.usuario.create({
+        data: createUsuarioDto,
+      });
+    } catch (e) {} // Desenvolver um melhor tratamento de erros
   }
 
   async findAll() {
