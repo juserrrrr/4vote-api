@@ -1,32 +1,50 @@
 import { Injectable } from '@nestjs/common';
 import { CreatePesquisaDto } from './dto/create-pesquisa.dto';
 import { UpdatePesquisaDto } from './dto/update-pesquisa.dto';
+import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
 export class PesquisaService {
-  create(body: CreatePesquisaDto) {
-    const retorno = Object.entries(body)
-      .map(([chave, valor]) => `${chave}: ${valor}`)
-      .join(', ');
-    return `Pesquisa criada: ${retorno}`;
+  constructor(private readonly prisma: PrismaService) {}
+
+  async create(body: CreatePesquisaDto) {
+    const pesquisa = await this.prisma.pesquisa.create({ data: body });
+    return pesquisa;
   }
 
-  findAll() {
-    return 'Retornando todas as pesquisas';
+  async findAll() {
+    const pesquisas = await this.prisma.pesquisa.findMany();
+    return pesquisas;
   }
 
-  getById(id: number) {
-    return `Pesquisa de id ${id} encontrada`;
+  async getById(id: number) {
+    const pesquisa = await this.prisma.pesquisa.findUnique({
+      where: { id },
+    });
+    return pesquisa;
   }
 
-  update(body: UpdatePesquisaDto, id: number) {
-    const retorno = Object.entries(body)
-      .map(([chave, valor]) => `${chave}: ${valor}`)
-      .join(', ');
-    return `Dados atualizados para pesquisa de ID ${id}:\n ${retorno}`;
+  async update(body: UpdatePesquisaDto, id: number) {
+    const pesquisaAtualizada = await this.prisma.pesquisa.update({
+      where: { id },
+      data: body,
+    });
+    return pesquisaAtualizada;
   }
 
-  delete(id: number) {
-    return `Deletando pesquisa de ID ${id}`;
+  async updateArquivar(id: number) {
+    const pesquisaArquivada = await this.prisma.pesquisa.update({
+      where: { id },
+      data: { arquivado: true },
+    });
+    return pesquisaArquivada;
+  }
+
+  async delete(id: number) {
+    const pesquisaDeletada = await this.prisma.pesquisa.delete({
+      where: { id },
+    });
+
+    return pesquisaDeletada;
   }
 }
