@@ -4,7 +4,7 @@ import { AuthCadastroDto } from './dto/auth-cadastro.dto';
 import { AuthEntrarDto } from './dto/auth-entrar.dto';
 
 @Controller('auth')
-export class AuthController {
+export class AuthController{
   constructor(private readonly authService: AuthService) {}
 
   @Post('entrar')
