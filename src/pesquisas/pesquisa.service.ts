@@ -18,24 +18,23 @@ export class PesquisaService {
       const pesquisa = await prisma.pesquisa.create({
         data: createPesquisaDto,
       });
+      const pesquisaId = pesquisa.id;
 
-      const pergunta = await prisma.pergunta.create({
-        data: {
-          texto: createPerguntaDto.texto,
-          URLimagem: createPerguntaDto.URLimagem,
-          pesquisa_id: pesquisa.id,
-        },
-      });
+      const pergunta = await prisma.$queryRaw`
+        INSERT INTO Pergunta (texto, URLimagem, pesquisa_id)
+        VALUES (${createPerguntaDto.texto}, ${createPerguntaDto.URLimagem}, ${pesquisaId})
+        RETURNING id
+      `;
+      const perguntaId = pergunta[0].id;
 
-      const opcao = await prisma.opcao.create({
-        data: {
-          pergunta_id: pergunta.id,
-          texto: createOpcaoDto.texto,
-          quantVotos: createOpcaoDto.quantVotos,
-        },
-      });
+      const opcao = await prisma.$queryRaw`
+        INSERT INTO Opcao (pergunta_id, texto, quantVotos)
+        VALUES (${perguntaId}, ${createOpcaoDto.texto}, ${createOpcaoDto.quantVotos})
+        RETURNING id
+      `;
+      const opcaoId = opcao[0].id;
 
-      return { pesquisa, pergunta, opcao };
+      return { pesquisaId, perguntaId, opcaoId };
     });
   }
 
