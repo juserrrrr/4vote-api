@@ -34,9 +34,10 @@ export class AuthService {
     const usuario = await this.prisma.usuario.findUnique({
       where: { email: entrarDto.email },
     });
-    if (!usuario || !compare(entrarDto.senha, usuario.senha)) {
+    if (!usuario || !(await compare(entrarDto.senha, usuario.senha))) {
       throw new UnauthorizedException('Credenciais inválidas');
     }
+
     const payload = { id: usuario.id, nome: usuario.nome };
     return this.criarToken(payload);
   }
