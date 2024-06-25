@@ -1,10 +1,9 @@
 import { Module } from '@nestjs/common';
 import { PesquisaController } from './pesquisa.controller';
 import { PesquisaService } from './pesquisa.service';
-import { PrismaService } from '../prisma/prisma.service';
+import { PrismaModule } from '../prisma/prisma.module';
 
 @Module({
-  imports: [PrismaService],
   imports: [PrismaModule],
   controllers: [PesquisaController],
   providers: [PesquisaService],
