@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { UpdateUsuarioDto } from './dto/update-usuario.dto';
+import { CreateUsuarioDto } from './dto/create-usuario.dto';
 
 @Injectable()
 export class UsuariosService {
@@ -12,6 +13,12 @@ export class UsuariosService {
         data: createUsuarioDto,
       });
     } catch (e) {} // Desenvolver um melhor tratamento de erros
+  }
+
+  async findMe(id: number) {
+    return this.prisma.usuario.findUnique({
+      where: { id },
+    });
   }
 
   async findAll() {
