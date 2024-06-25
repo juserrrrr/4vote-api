@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common';
 import { CreatePesquisaDto } from './dto/create-pesquisa.dto';
-import { UpdatePesquisaDto } from './dto/update-pesquisa.dto';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreatePerguntaDto } from 'src/perguntas/dto/create-pergunta.dto';
 import { CreateOpcaoDto } from 'src/opcao/dto/create-opcao.dto';
@@ -21,17 +20,17 @@ export class PesquisaService {
       const pesquisaId = pesquisa.id;
 
       const pergunta = await prisma.$queryRaw`
-        INSERT INTO Pergunta (texto, URLimagem, pesquisa_id)
-        VALUES (${createPerguntaDto.texto}, ${createPerguntaDto.URLimagem}, ${pesquisaId})
-        RETURNING id
-      `;
+      INSERT INTO Pergunta (texto, URLimagem, pesquisa_id)
+      VALUES (${createPerguntaDto.texto}, ${createPerguntaDto.URLimagem}, ${pesquisaId})
+      RETURNING id
+    `;
       const perguntaId = pergunta[0].id;
 
       const opcao = await prisma.$queryRaw`
-        INSERT INTO Opcao (pergunta_id, texto, quantVotos)
-        VALUES (${perguntaId}, ${createOpcaoDto.texto}, ${createOpcaoDto.quantVotos})
-        RETURNING id
-      `;
+      INSERT INTO Opcao (pergunta_id, texto, quantVotos)
+      VALUES (${perguntaId}, ${createOpcaoDto.texto}, ${createOpcaoDto.quantVotos})
+      RETURNING id
+    `;
       const opcaoId = opcao[0].id;
 
       return { pesquisaId, perguntaId, opcaoId };
@@ -39,25 +38,22 @@ export class PesquisaService {
   }
 
   async findAll() {
-    return await this.prisma.pesquisa.findMany();
+    const pesquisas = await this.prisma.pesquisa.findMany();
+    return pesquisas;
   }
 
   async getById(id: number) {
-    return await this.prisma.pesquisa.findUnique({
+    const pesquisa = await this.prisma.pesquisa.findUnique({
       where: { id },
     });
+    return pesquisa;
   }
 
-  async update(body: UpdatePesquisaDto, id: number) {
-    return await this.prisma.pesquisa.update({
+  async updateArquivar(id: number) {
+    const pesquisaArquivada = await this.prisma.pesquisa.update({
       where: { id },
-      data: body,
+      data: { arquivado: true },
     });
-  }
-
-  async delete(id: number) {
-    return await this.prisma.pesquisa.delete({
-      where: { id },
-    });
+    return pesquisaArquivada;
   }
 }
