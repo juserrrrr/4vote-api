@@ -1,7 +1,6 @@
-import { Controller, Get, Post, Delete, Patch, Body, Param, ParseIntPipe } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, ParseIntPipe, Patch } from '@nestjs/common';
 import { PesquisaService } from './pesquisa.service';
 import { CreatePesquisaDto } from './dto/create-pesquisa.dto';
-import { UpdatePesquisaDto } from './dto/update-pesquisa.dto';
 
 @Controller('pesquisas')
 export class PesquisaController {
@@ -23,12 +22,7 @@ export class PesquisaController {
   }
 
   @Patch(':id')
-  update(@Body() body: UpdatePesquisaDto, @Param('id') id) {
-    return this.pesquisaService.update(body, id);
-  }
-
-  @Delete(':id')
-  remove(@Param('id', new ParseIntPipe()) id: number) {
-    return this.pesquisaService.delete(id);
+  arquivar(@Param('id', new ParseIntPipe()) id: number) {
+    return this.pesquisaService.arquivar(id);
   }
 }

@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common';
 import { CreatePesquisaDto } from './dto/create-pesquisa.dto';
-import { UpdatePesquisaDto } from './dto/update-pesquisa.dto';
 
 @Injectable()
 export class PesquisaService {
@@ -19,14 +18,7 @@ export class PesquisaService {
     return `Pesquisa de id ${id} encontrada`;
   }
 
-  update(body: UpdatePesquisaDto, id: number) {
-    const retorno = Object.entries(body)
-      .map(([chave, valor]) => `${chave}: ${valor}`)
-      .join(', ');
-    return `Dados atualizados para pesquisa de ID ${id}:\n ${retorno}`;
-  }
-
-  delete(id: number) {
-    return `Deletando pesquisa de ID ${id}`;
+  arquivar(id: number) {
+    return `Pesquisa de id ${id} arquivada`;
   }
 }

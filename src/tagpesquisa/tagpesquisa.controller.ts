@@ -1,29 +1,12 @@
-import { Controller, Get, Body, Param, Put, Delete } from '@nestjs/common';
+import { Controller, Get, Param } from '@nestjs/common';
 import { TagPesquisaService } from './tagpesquisa.service';
-import { UpdateTagPesquisaDto } from './dto/update-tagpesquisa.dto';
-import { ValidationPipe } from '@nestjs/common';
 
 @Controller('tagpesquisa')
 export class TagPesquisaController {
   constructor(private readonly tagPesquisaService: TagPesquisaService) {}
 
-  @Get()
-  findAll() {
-    return this.tagPesquisaService.findAll();
-  }
-
-  @Get(':id')
-  findOne(@Param('id') id: number) {
-    return this.tagPesquisaService.findOne(+id);
-  }
-
-  @Put(':id')
-  update(@Param('id') id: string, @Body(new ValidationPipe()) updateTagPesquisaDto: UpdateTagPesquisaDto) {
-    return this.tagPesquisaService.update(+id, updateTagPesquisaDto);
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.tagPesquisaService.remove(+id);
+  @Get(':pesquisa_id')
+  findByPesquisa(@Param('pesquisa_id') pesquisa_id: number) {
+    return this.tagPesquisaService.findByPesquisa(pesquisa_id);
   }
 }

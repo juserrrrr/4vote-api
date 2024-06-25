@@ -1,4 +1,7 @@
 import { IsBoolean, IsDate, IsNumber, IsString } from 'class-validator';
+import { CreatePerguntaDto } from 'src/perguntas/dto/create-pergunta.dto';
+import { CreateTagDto } from 'src/tag/dto/create-tag.dto';
+import { CreateTagPesquisaDto } from 'src/tagpesquisa/dto/create-tagpesquisa.dto';
 
 export class CreatePesquisaDto {
   @IsString()
@@ -30,4 +33,10 @@ export class CreatePesquisaDto {
 
   @IsBoolean()
   ehVotacao: boolean;
+
+  perguntas: CreatePerguntaDto[];
+
+  tags: CreateTagDto[];
+
+  tagsPesquisa: CreateTagPesquisaDto[];
 }
