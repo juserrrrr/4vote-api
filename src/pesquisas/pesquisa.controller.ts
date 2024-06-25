@@ -24,5 +24,19 @@ export class PesquisaController {
   @Patch(':id')
   arquivar(@Param('id', new ParseIntPipe()) id: number) {
     return this.pesquisaService.arquivar(id);
+
+  update(@Body() body: UpdatePesquisaDto, @Param('id', new ParseIntPipe()) id) {
+    return this.pesquisaService.update(body, id);
+  }
+
+  @Patch('arquivar/:id')
+  updateArquivar(@Param('id', new ParseIntPipe()) id: number) {
+    return this.pesquisaService.updateArquivar(id);
+  }
+
+  @Delete(':id')
+  remove(@Param('id', new ParseIntPipe()) id: number) {
+    return this.pesquisaService.delete(id);
+
   }
 }

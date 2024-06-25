@@ -6,7 +6,19 @@ import { UpdateUsuarioDto } from './dto/update-usuario.dto';
 export class UsuariosService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async findMe(id: number) {
+  async create(createUsuarioDto: CreateUsuarioDto) {
+    try {
+      return await this.prisma.usuario.create({
+        data: createUsuarioDto,
+      });
+    } catch (e) {} // Desenvolver um melhor tratamento de erros
+  }
+
+  async findAll() {
+    return this.prisma.usuario.findMany();
+  }
+
+  async findOne(id: number) {
     return this.prisma.usuario.findUnique({
       where: { id },
     });
