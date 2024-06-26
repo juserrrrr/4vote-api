@@ -16,25 +16,21 @@ export class UsuariosService {
   }
 
   async findMe(id: number) {
-    return this.prisma.usuario.findUnique({
-      where: { id },
-    });
-  }
+    const usuario = await this.prisma.$queryRaw`
+    SELECT nome, email, cpf
+    FROM Usuario
+    WHERE id=${id}
+    `;
 
-  async findAll() {
-    return this.prisma.usuario.findMany();
-  }
-
-  async findOne(id: number) {
-    return this.prisma.usuario.findUnique({
-      where: { id },
-    });
+    return usuario;
   }
 
   async update(id: number, updateUsuarioDto: UpdateUsuarioDto) {
-    return this.prisma.usuario.update({
-      where: { id },
-      data: updateUsuarioDto,
-    });
+    const updateUsuario = await this.prisma.$executeRaw`
+    UPDATE Usuario
+    SET nome=${updateUsuarioDto.nome}, email=${updateUsuarioDto.email}
+    WHERE id=${id}
+    `;
+    return updateUsuario;
   }
 }
