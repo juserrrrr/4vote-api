@@ -4,19 +4,19 @@ import { Request } from 'express';
 
 @Injectable()
 export class AuthGuard implements CanActivate {
-  constructor(private readonly jwtService: JwtService) {}
+  constructor(private jwtService: JwtService) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    const request = context.switchToHttp().getRequest();
+    const request = context.switchToHttp().getRequest<Request>();
     const token = this.extractTokenFromHeader(request);
     if (!token) {
-      throw new UnauthorizedException('Token não encontrado');
+      throw new UnauthorizedException();
     }
     try {
-      const payload = this.jwtService.verify(token, { issuer: 'Assinatura4Vote' });
-      request.payload = payload;
+      const payload = await this.jwtService.verifyAsync(token);
+      request['user'] = payload;
     } catch {
-      throw new UnauthorizedException('Token inválido');
+      throw new UnauthorizedException();
     }
     return true;
   }

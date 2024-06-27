@@ -17,7 +17,6 @@ export class AuthService {
   criarToken({ id, nome }: { id: number; nome: string }) {
     const accessToken = this.jwtService.sign(
       {
-        id,
         nome,
       },
       {
