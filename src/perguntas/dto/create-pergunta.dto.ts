@@ -1,16 +1,11 @@
-import { IsInt, IsOptional, IsString } from 'class-validator';
-import { CreateOpcaoDto } from 'src/opcao/dto/create-opcao.dto';
+import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
 export class CreatePerguntaDto {
   @IsString()
+  @IsNotEmpty()
   texto: string;
 
   @IsOptional()
   @IsString()
   URLimagem?: string;
-
-  @IsInt()
-  pesquisa_id: number;
-
-  opcoes: CreateOpcaoDto[];
 }

@@ -1,39 +1,43 @@
 import { Injectable } from '@nestjs/common';
 import { CreatePesquisaDto } from './dto/create-pesquisa.dto';
 import { PrismaService } from '../prisma/prisma.service';
-import { CreatePerguntaDto } from 'src/perguntas/dto/create-pergunta.dto';
-import { CreateOpcaoDto } from 'src/opcao/dto/create-opcao.dto';
-
+import { CreatePerguntaDto } from '../perguntas/dto/create-pergunta.dto';
+import { CreateOpcaoDto } from '../opcao/dto/create-opcao.dto';
 @Injectable()
 export class PesquisaService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create(
-    createPesquisaDto: CreatePesquisaDto,
-    createPerguntaDto: CreatePerguntaDto,
-    createOpcaoDto: CreateOpcaoDto,
-  ) {
-    return await this.prisma.$transaction(async (prisma) => {
-      const pesquisa = await prisma.pesquisa.create({
-        data: createPesquisaDto,
-      });
-      const pesquisaId = pesquisa.id;
+  async createSurvey(
+    createPerguntaDto: Omit<CreatePesquisaDto, 'perguntas' | 'opcoes'>,
+    idUser: number,
+  ): Promise<number> {
+    console.log(typeof createPerguntaDto.dataTermino);
+    return await this.prisma.$executeRaw`
+      INSERT INTO Pesquisa (codigo, criador, titulo, descricao, dataTermino, ehPublico, URLimagem, ehVotacao)
+      VALUES (${createPerguntaDto.codigo}, ${idUser}, ${createPerguntaDto.titulo}, ${createPerguntaDto.descricao}, ${createPerguntaDto.dataTermino}, ${createPerguntaDto.ehPublico}, ${createPerguntaDto.URLimagem}, ${createPerguntaDto.ehVotacao})
+    `;
+  }
 
-      const pergunta = await prisma.$queryRaw`
-      INSERT INTO Pergunta (texto, URLimagem, pesquisa_id)
-      VALUES (${createPerguntaDto.texto}, ${createPerguntaDto.URLimagem}, ${pesquisaId})
+  async createQuestions(idPesquisa: number, createPerguntaDto: CreatePerguntaDto[]): Promise<number> {
+    return await this.prisma.$queryRaw`
+      INSERT INTO Pergunta (texto, pesquisa_id, URLimagem) ()
+      VALUES ${createPerguntaDto.map((pergunta) => `(${pergunta.texto}, ${idPesquisa}, ${pergunta.URLimagem})`).join(',')}
       RETURNING id
     `;
-      const perguntaId = pergunta[0].id;
+  }
 
-      const opcao = await prisma.$queryRaw`
-      INSERT INTO Opcao (pergunta_id, texto, quantVotos)
-      VALUES (${perguntaId}, ${createOpcaoDto.texto}, ${createOpcaoDto.quantVotos})
-      RETURNING id
-    `;
-      const opcaoId = opcao[0].id;
+  // async createOptions(idPergunta: number, createOpcaoDto: CreateOpcaoDto[]) {
+  //   return await this.prisma.$queryRaw`
+  //     INSERT INTO Opcao (pergunta_id, texto, quantVotos)
+  //     VALUES (${createOpcaoDto.pergunta_id}, ${createOpcaoDto.texto}, ${createOpcaoDto.quantVotos})
+  //   `;
+  // }
 
-      return { pesquisaId, perguntaId, opcaoId };
+  async create(createPesquisaDto: CreatePesquisaDto, idUser: number) {
+    return await this.prisma.$transaction(async () => {
+      const { perguntas, opcoes, ...pesquisa } = createPesquisaDto;
+      const idPesquisa = await this.createSurvey(pesquisa, idUser);
+      return idPesquisa;
     });
   }
 

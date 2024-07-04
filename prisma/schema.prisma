@@ -54,12 +54,12 @@ model Pesquisa {
   id           Int            @id @default(autoincrement())
   titulo       String         @db.VarChar(255)
   codigo       String         @unique(map: "Pesquisa_ak_codigo") @db.VarChar(11)
-  dataCriacao  DateTime       @db.DateTime(0)
-  dataTermino  DateTime       @db.DateTime(0)
+  dataCriacao  DateTime       @default(now()) @db.Timestamp(0)
+  dataTermino  DateTime       @db.Timestamp(0)
   ehPublico    Boolean
   descricao    String?        @db.Text
   criador      Int
-  arquivado    Boolean
+  arquivado    Boolean        @default(false)
   URLimagem    String?        @db.VarChar(255)
   ehVotacao    Boolean
   Participacao Participacao[]

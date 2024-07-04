@@ -1,42 +1,29 @@
 import { CreatePerguntaDto } from 'src/perguntas/dto/create-pergunta.dto';
-import { CreateTagDto } from 'src/tag/dto/create-tag.dto';
-import { CreateTagPesquisaDto } from 'src/tagpesquisa/dto/create-tagpesquisa.dto';
-import { IsBoolean, IsDate, IsNotEmpty, IsNumber, IsString } from 'class-validator';
+import { IsBoolean, IsDateString, IsNotEmpty, IsString } from 'class-validator';
+import { CreateOpcaoDto } from '../../opcao/dto/create-opcao.dto';
 
 export class CreatePesquisaDto {
-  @IsNotEmpty()
-  @IsString()
-  titulo: string;
-
   @IsNotEmpty()
   @IsString()
   codigo: string;
 
   @IsNotEmpty()
-  @IsDate()
-  dataCriacao: Date;
+  @IsString()
+  titulo: string;
+
+  @IsString()
+  descricao?: string;
 
   @IsNotEmpty()
-  @IsDate()
-  dataTermino: Date;
+  @IsDateString()
+  dataTermino: string;
 
   @IsNotEmpty()
   @IsBoolean()
   ehPublico: boolean;
 
   @IsString()
-  descricao: string;
-
-  @IsNotEmpty()
-  @IsNumber()
-  criador: number;
-
-  @IsNotEmpty()
-  @IsBoolean()
-  arquivado: boolean;
-
-  @IsString()
-  URLimagem: string;
+  URLimagem?: string;
 
   @IsNotEmpty()
   @IsBoolean()
@@ -44,7 +31,5 @@ export class CreatePesquisaDto {
 
   perguntas: CreatePerguntaDto[];
 
-  tags: CreateTagDto[];
-
-  tagsPesquisa: CreateTagPesquisaDto[];
+  opcoes?: CreateOpcaoDto[];
 }
