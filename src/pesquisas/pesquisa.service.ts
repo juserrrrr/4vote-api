@@ -11,18 +11,21 @@ export class PesquisaService {
     createPerguntaDto: Omit<CreatePesquisaDto, 'perguntas' | 'opcoes'>,
     idUser: number,
   ): Promise<number> {
-    console.log(typeof createPerguntaDto.dataTermino);
-    return await this.prisma.$executeRaw`
+    await this.prisma.$executeRaw`
       INSERT INTO Pesquisa (codigo, criador, titulo, descricao, dataTermino, ehPublico, URLimagem, ehVotacao)
       VALUES (${createPerguntaDto.codigo}, ${idUser}, ${createPerguntaDto.titulo}, ${createPerguntaDto.descricao}, ${createPerguntaDto.dataTermino}, ${createPerguntaDto.ehPublico}, ${createPerguntaDto.URLimagem}, ${createPerguntaDto.ehVotacao})
     `;
+    const result = await this.prisma.$queryRaw`
+      SELECT LAST_INSERT_ID() as id;
+    `;
+    const idPesquisa = Number(result[0].id);
+    return idPesquisa ? idPesquisa : null;
   }
 
   async createQuestions(idPesquisa: number, createPerguntaDto: CreatePerguntaDto[]): Promise<number> {
     return await this.prisma.$queryRaw`
       INSERT INTO Pergunta (texto, pesquisa_id, URLimagem) ()
       VALUES ${createPerguntaDto.map((pergunta) => `(${pergunta.texto}, ${idPesquisa}, ${pergunta.URLimagem})`).join(',')}
-      RETURNING id
     `;
   }
 
@@ -37,6 +40,7 @@ export class PesquisaService {
     return await this.prisma.$transaction(async () => {
       const { perguntas, opcoes, ...pesquisa } = createPesquisaDto;
       const idPesquisa = await this.createSurvey(pesquisa, idUser);
+      console.log(idPesquisa);
       return idPesquisa;
     });
   }
