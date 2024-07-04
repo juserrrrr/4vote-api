@@ -94,8 +94,7 @@ export class PesquisaService {
       });
     } catch (error) {
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
-        console.error(error.meta);
-        throw new HttpException('Erro', HttpStatus.CONFLICT);
+        throw new HttpException(error.message, HttpStatus.CONFLICT);
       } else throw new InternalServerErrorException('Erro interno ao criar uma pesquisa');
     }
   }
