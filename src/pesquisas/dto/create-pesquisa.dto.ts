@@ -1,14 +1,22 @@
 import { CreatePerguntaDto } from 'src/perguntas/dto/create-pergunta.dto';
-import { IsBoolean, IsDateString, IsNotEmpty, IsString } from 'class-validator';
-import { CreateOpcaoDto } from '../../opcao/dto/create-opcao.dto';
+import {
+  ArrayMaxSize,
+  ArrayMinSize,
+  IsArray,
+  IsBoolean,
+  IsDateString,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  IsUrl,
+  Length,
+  ValidateIf,
+} from 'class-validator';
 
 export class CreatePesquisaDto {
   @IsNotEmpty()
   @IsString()
-  codigo: string;
-
-  @IsNotEmpty()
-  @IsString()
+  @Length(5, 100)
   titulo: string;
 
   @IsString()
@@ -23,13 +31,17 @@ export class CreatePesquisaDto {
   ehPublico: boolean;
 
   @IsString()
+  @IsOptional()
+  @IsUrl()
   URLimagem?: string;
 
   @IsNotEmpty()
   @IsBoolean()
   ehVotacao: boolean;
 
+  @IsArray()
+  @ArrayMinSize(1)
+  @ValidateIf((obj) => obj.ehVotacao === true)
+  @ArrayMaxSize(1)
   perguntas: CreatePerguntaDto[];
-
-  opcoes?: CreateOpcaoDto[];
 }
