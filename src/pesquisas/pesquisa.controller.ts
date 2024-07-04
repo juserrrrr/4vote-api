@@ -29,7 +29,8 @@ export class PesquisaController {
   }
 
   @Patch('arquivar/:id')
-  updateArquivar(@Param('id', new ParseIntPipe()) id: number) {
-    return this.pesquisaService.updateArquivar(id);
+  updateArquivar(@Param('id', new ParseIntPipe()) idSurvey: number, @Req() req: any) {
+    const idUser = Number(req.user.sub);
+    return this.pesquisaService.updateArquivar(idSurvey, idUser);
   }
 }

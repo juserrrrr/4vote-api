@@ -101,7 +101,6 @@ export class PesquisaService {
     try {
       // Gera um código aleatório
       const codigo = await this.generateUniqueCode();
-
       return await this.prismaService.$transaction(async (prisma) => {
         const { perguntas, ...pesquisa } = createPesquisaDto;
         const idPesquisa = await this.createSurvey(pesquisa, idUser, codigo, prisma);
@@ -120,22 +119,59 @@ export class PesquisaService {
   }
 
   async findAll() {
-    const pesquisas = await this.prismaService.pesquisa.findMany();
-    return pesquisas;
+    try {
+      const surverys = await this.prismaService.$queryRaw`
+        SELECT Pesquisa.id, Pesquisa.titulo, Pesquisa.descricao, Pesquisa.dataTermino, Pesquisa.ehPublico, Pesquisa.URLimagem, Pesquisa.ehVotacao
+        FROM Pesquisa
+        WHERE Pesquisa.arquivado = false AND Pesquisa.dataTermino >= NOW()
+        `;
+      return surverys;
+    } catch (error) {
+      throw new InternalServerErrorException('Erro interno ao buscar as pesquisas');
+    }
   }
 
   async getById(id: number) {
-    const pesquisa = await this.prismaService.pesquisa.findUnique({
-      where: { id },
-    });
-    return pesquisa;
+    try {
+      const survery = await this.prismaService.$queryRaw`
+        SELECT Pesquisa.id, Pesquisa.titulo, Pesquisa.descricao, Pesquisa.dataTermino, Pesquisa.ehPublico, Pesquisa.URLimagem, Pesquisa.ehVotacao
+        FROM Pesquisa
+        WHERE Pesquisa.id = ${id}
+        `;
+      return survery;
+    } catch (error) {
+      throw new InternalServerErrorException('Erro interno ao buscar a pesquisa');
+    }
   }
 
-  async updateArquivar(id: number) {
-    const pesquisaArquivada = await this.prismaService.pesquisa.update({
-      where: { id },
-      data: { arquivado: true },
+  async updateArquivar(idSurvey: number, idUser: number) {
+    const survery = await this.prismaService.pesquisa.findUnique({
+      where: { id: idSurvey },
+      select: { criador: true, arquivado: true },
     });
-    return pesquisaArquivada;
+    // Verifica se a pesquisa existe
+    if (!survery) {
+      throw new HttpException('Pesquisa não encontrada', HttpStatus.NOT_FOUND);
+    }
+    // Verifica se o usuário é o criador da pesquisa
+    console.log(survery.criador, idUser);
+    if (survery.criador !== idUser) {
+      throw new HttpException('Usuário não autorizado', HttpStatus.UNAUTHORIZED);
+    }
+    // Verifica se a pesquisa já foi arquivada
+    if (survery.arquivado) {
+      throw new HttpException('Pesquisa já arquivada', HttpStatus.BAD_REQUEST);
+    }
+    // Arquiva a pesquisa
+    try {
+      const surveryArchived = await this.prismaService.pesquisa.update({
+        where: { id: idSurvey },
+        data: { arquivado: true },
+        select: { titulo: true, arquivado: true },
+      });
+      return surveryArchived;
+    } catch (error) {
+      throw new InternalServerErrorException('Erro interno ao arquivar a pesquisa');
+    }
   }
 }
