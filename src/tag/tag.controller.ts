@@ -1,4 +1,4 @@
-import { Controller, Get, Param } from '@nestjs/common';
+import { Controller, Get, Param, ParseIntPipe } from '@nestjs/common';
 import { TagService } from './tag.service';
 
 @Controller('tag')
@@ -11,7 +11,7 @@ export class TagController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: number) {
-    return this.tagService.findOne(+id);
+  findOne(@Param('id', new ParseIntPipe()) id: number) {
+    return this.tagService.findOne(id);
   }
 }
