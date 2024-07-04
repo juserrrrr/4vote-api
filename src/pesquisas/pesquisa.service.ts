@@ -3,7 +3,8 @@ import { CreatePesquisaDto } from './dto/create-pesquisa.dto';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreatePerguntaDto } from '../perguntas/dto/create-pergunta.dto';
 import { CreateOpcaoDto } from '../opcao/dto/create-opcao.dto';
-import { Prisma } from '@prisma/client';
+import { Prisma, PrismaClient } from '@prisma/client';
+import { DefaultArgs } from '@prisma/client/runtime/library';
 @Injectable()
 export class PesquisaService {
   constructor(private readonly prismaService: PrismaService) {}
@@ -30,14 +31,18 @@ export class PesquisaService {
     createPerguntaDto: Omit<CreatePesquisaDto, 'perguntas' | 'opcoes'>,
     idUser: number,
     codigo: string,
+    prisma: Omit<
+      PrismaClient<Prisma.PrismaClientOptions, never, DefaultArgs>,
+      '$connect' | '$disconnect' | '$on' | '$transaction' | '$use' | '$extends'
+    >,
   ): Promise<number> {
     // Executa a query SQL para inserir a pesquisa
-    await this.prismaService.$executeRaw`
+    await prisma.$executeRaw`
       INSERT INTO Pesquisa (codigo, criador, titulo, descricao, dataTermino, ehPublico, URLimagem, ehVotacao)
       VALUES (${codigo}, ${idUser}, ${createPerguntaDto.titulo}, ${createPerguntaDto.descricao}, ${createPerguntaDto.dataTermino}, ${createPerguntaDto.ehPublico}, ${createPerguntaDto.URLimagem}, ${createPerguntaDto.ehVotacao})
     `;
     // Busca o ID da pesquisa criada
-    const result = await this.prismaService.$queryRaw`
+    const result = await prisma.$queryRaw`
       SELECT LAST_INSERT_ID() as id;
     `;
     // Retorna o ID da pesquisa criada
@@ -46,7 +51,14 @@ export class PesquisaService {
   }
 
   // Função para criar as perguntas de uma pesquisa
-  async createQuestions(idPesquisa: number, createPerguntaDto: CreatePerguntaDto[]): Promise<number[]> {
+  async createQuestions(
+    idPesquisa: number,
+    createPerguntaDto: CreatePerguntaDto[],
+    prisma: Omit<
+      PrismaClient<Prisma.PrismaClientOptions, never, DefaultArgs>,
+      '$connect' | '$disconnect' | '$on' | '$transaction' | '$use' | '$extends'
+    >,
+  ): Promise<number[]> {
     // Cria um placeholder para cada pergunta
     const valuesPlaceholder = createPerguntaDto.map(() => '(?, ?, ?)').join(',');
     // Cria a query SQL para inserir as perguntas
@@ -54,10 +66,10 @@ export class PesquisaService {
     // Cria um array com os parâmetros para a query SQL
     const params = createPerguntaDto.flatMap((pergunta) => [pergunta.texto, idPesquisa, pergunta.URLimagem]);
     // Executa a query SQL
-    await this.prismaService.$executeRawUnsafe(sqlQuery, ...params);
+    await prisma.$executeRawUnsafe(sqlQuery, ...params);
 
     // Busca os IDs das perguntas criadas
-    const resultIds = await this.prismaService.$queryRaw<{ id: number }[]>`
+    const resultIds = await prisma.$queryRaw<{ id: number }[]>`
     SELECT id FROM Pergunta WHERE pesquisa_id = ${idPesquisa} ORDER BY id DESC LIMIT ${createPerguntaDto.length}
   `;
 
@@ -67,7 +79,14 @@ export class PesquisaService {
   }
 
   // Função para criar as opções de uma pergunta
-  async createOptions(idPergunta: number, createOpcaoDto: CreateOpcaoDto[]) {
+  async createOptions(
+    idPergunta: number,
+    createOpcaoDto: CreateOpcaoDto[],
+    prisma: Omit<
+      PrismaClient<Prisma.PrismaClientOptions, never, DefaultArgs>,
+      '$connect' | '$disconnect' | '$on' | '$transaction' | '$use' | '$extends'
+    >,
+  ) {
     // Cria um placeholder para cada opção
     const valuesPlaceholder = createOpcaoDto.map(() => '(?, ?, ?)').join(',');
     // Cria a query SQL para inserir as opções
@@ -75,19 +94,20 @@ export class PesquisaService {
     // Cria um array com os parâmetros para a query SQL
     const params = createOpcaoDto.flatMap((opcao) => [opcao.texto, opcao.quantVotos, idPergunta]);
     // Executa a query SQL
-    await this.prismaService.$executeRawUnsafe(sqlQuery, ...params);
+    await prisma.$executeRawUnsafe(sqlQuery, ...params);
   }
 
   async create(createPesquisaDto: CreatePesquisaDto, idUser: number) {
     try {
       // Gera um código aleatório
       const codigo = await this.generateUniqueCode();
-      return await this.prismaService.$transaction(async () => {
+
+      return await this.prismaService.$transaction(async (prisma) => {
         const { perguntas, ...pesquisa } = createPesquisaDto;
-        const idPesquisa = await this.createSurvey(pesquisa, idUser, codigo);
-        const idsPergunta = await this.createQuestions(idPesquisa, perguntas);
+        const idPesquisa = await this.createSurvey(pesquisa, idUser, codigo, prisma);
+        const idsPergunta = await this.createQuestions(idPesquisa, perguntas, prisma);
         await Promise.all(
-          idsPergunta.map((idPergunta, index) => this.createOptions(idPergunta, perguntas[index].opcoes)),
+          idsPergunta.map((idPergunta, index) => this.createOptions(idPergunta, perguntas[index].opcoes, prisma)),
         );
         const { titulo } = pesquisa;
         return { codigo, titulo };
