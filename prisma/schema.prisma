@@ -11,7 +11,7 @@ model Opcao {
   id           Int            @id @default(autoincrement())
   pergunta_id  Int
   texto        String         @db.VarChar(255)
-  quantVotos   Int
+  quantVotos   Int            @default(0)
   Pergunta     Pergunta       @relation(fields: [pergunta_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "Pergunta_Opcao")
   Opcao_Votada Opcao_Votada[]
 

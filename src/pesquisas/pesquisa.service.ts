@@ -88,11 +88,11 @@ export class PesquisaService {
     >,
   ) {
     // Cria um placeholder para cada opção
-    const valuesPlaceholder = createOpcaoDto.map(() => '(?, ?, ?)').join(',');
+    const valuesPlaceholder = createOpcaoDto.map(() => '(?, ?)').join(',');
     // Cria a query SQL para inserir as opções
-    const sqlQuery = `INSERT INTO Opcao (texto, quantVotos, pergunta_id) VALUES ${valuesPlaceholder}`;
+    const sqlQuery = `INSERT INTO Opcao (texto, pergunta_id) VALUES ${valuesPlaceholder}`;
     // Cria um array com os parâmetros para a query SQL
-    const params = createOpcaoDto.flatMap((opcao) => [opcao.texto, opcao.quantVotos, idPergunta]);
+    const params = createOpcaoDto.flatMap((opcao) => [opcao.texto, idPergunta]);
     // Executa a query SQL
     await prisma.$executeRawUnsafe(sqlQuery, ...params);
   }

@@ -5,5 +5,4 @@ export class CreateOpcaoDto {
   @IsNotEmpty()
   @Length(5, 100)
   texto: string;
-  quantVotos: number;
 }
