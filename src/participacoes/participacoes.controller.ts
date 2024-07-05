@@ -1,4 +1,4 @@
-import { Controller, Get, Param, ParseIntPipe, Post, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, ParseIntPipe, Post, Req, UseGuards } from '@nestjs/common';
 import { ParticipacaoService } from './participacao.service';
 import { AuthGuard } from '../auth/auth.guard';
 import { CreateParticipacaoDto } from './dto/create-participacao.dto';
@@ -12,9 +12,10 @@ export class ParcipacoesController {
   create(
     @Req() req: any,
     @Param('idSurvey', new ParseIntPipe()) idSurvey: number,
+    @Body()
     createParticipaoDto: CreateParticipacaoDto,
   ) {
-    const idUser = req.user.sub;
+    const idUser: number = Number(req.user.sub);
     return this.participacaoService.create(createParticipaoDto, idUser, idSurvey);
   }
 

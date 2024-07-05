@@ -3,6 +3,7 @@ import { VotoService } from './voto.service';
 import { VotoController } from './voto.controller';
 
 @Module({
+  imports: [],
   controllers: [VotoController],
   providers: [VotoService],
 })

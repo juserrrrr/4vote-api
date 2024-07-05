@@ -2,9 +2,6 @@ import { IsNumber, IsNotEmpty } from 'class-validator';
 
 export class CreateOpcaoVotadaDto {
   @IsNumber()
-  @IsNotEmpty()
+  @IsNotEmpty({ message: 'O id não pode ser vazio' })
   id_opcao: number;
-  @IsNumber()
-  @IsNotEmpty()
-  id_voto: number;
 }

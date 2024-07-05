@@ -99,7 +99,7 @@ model Usuario {
 
 model Voto {
   id           Int            @id @default(autoincrement())
-  data         DateTime       @db.DateTime(0)
+  data         DateTime       @default(now()) @db.Timestamp(0)
   hash         String         @db.VarChar(255)
   Opcao_Votada Opcao_Votada[]
 }
