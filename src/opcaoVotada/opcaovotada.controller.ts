@@ -1,12 +1,12 @@
-import { Controller, Get, Param } from '@nestjs/common';
+import { Controller, Get, Param, ParseIntPipe } from '@nestjs/common';
 import { OpcaoVotadaService } from './opcaovotada.service';
 
-@Controller('opcaovotada')
+@Controller('opcaoVotada')
 export class OpcaoVotadaController {
   constructor(private readonly opcaoVotadaService: OpcaoVotadaService) {}
 
-  @Get(':opcao_id')
-  findByOpcao(@Param('opcao_id') opcao_id: number) {
-    return this.opcaoVotadaService.findByOpcao(opcao_id);
+  @Get(':idVoto')
+  findByVote(@Param('idVoto', new ParseIntPipe()) idVote: number) {
+    return this.opcaoVotadaService.findByVote(idVote);
   }
 }

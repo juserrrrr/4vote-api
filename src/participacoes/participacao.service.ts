@@ -80,9 +80,11 @@ export class ParticipacaoService {
   }
 
   async create(createParticipacaoDto: CreateParticipacaoDto, idUser: number, idSurvey: number): Promise<string> {
-    return await this.prismaService.$transaction(async (prisma) => {
-      const { voto } = createParticipacaoDto;
+    const { voto } = createParticipacaoDto;
+    // Geracao da hash
+    const hash = await this.generateHash(voto.opcoesVotadas);
 
+    return await this.prismaService.$transaction(async (prisma) => {
       const idParticipation = await this.createParticipation(idUser, idSurvey, prisma);
       const idVote = await this.createVote(voto, prisma);
       await this.createOptionsVoted(voto, idVote, prisma);
