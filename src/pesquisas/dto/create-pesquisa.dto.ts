@@ -14,6 +14,7 @@ import {
   ArrayMaxSize,
 } from 'class-validator';
 import { CreatePerguntaDto } from '../../perguntas/dto/create-pergunta.dto';
+import { CreateTagDto } from '../../tag/dto/create-tag.dto';
 
 export class CreatePesquisaDto {
   @IsNotEmpty({ message: 'O título é obrigatório.' })
@@ -49,4 +50,9 @@ export class CreatePesquisaDto {
   @ValidateIf((obj) => obj.ehVotacao === true, { message: 'Validação condicional falhou.' })
   @ArrayMaxSize(1, { message: 'Deve haver no máximo uma pergunta para votações.' })
   perguntas: CreatePerguntaDto[];
+
+  @IsArray({ message: 'Tags deve ser um array.' })
+  @ValidateNested({ each: true, message: 'Cada tag deve ser válida.' })
+  @Type(() => CreateTagDto)
+  tags: CreateTagDto[];
 }
