@@ -1,10 +1,10 @@
 import { Module } from '@nestjs/common';
 import { OpcaoVotadaService } from './opcaovotada.service';
 import { OpcaoVotadaController } from './opcaovotada.controller';
-import { PrismaClient } from '@prisma/client';
+import { PrismaModule } from '../prisma/prisma.module';
 
 @Module({
-  imports: [PrismaClient],
+  imports: [PrismaModule],
   controllers: [OpcaoVotadaController],
   providers: [OpcaoVotadaService],
   exports: [],

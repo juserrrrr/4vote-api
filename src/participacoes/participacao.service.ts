@@ -1,9 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable, InternalServerErrorException } from '@nestjs/common';
 import { CreateParticipacaoDto } from './dto/create-participacao.dto';
 import { PrismaService } from '../prisma/prisma.service';
 import { Prisma, PrismaClient } from '@prisma/client';
 import { DefaultArgs } from '@prisma/client/runtime/library';
-import { CreateVotoDto } from '../voto/dto/create-voto.dto';
 import { CreateOpcaoVotadaDto } from '../opcaoVotada/dto/create-opcaovotada.dto';
 
 @Injectable()
@@ -11,7 +10,7 @@ export class ParticipacaoService {
   constructor(private readonly prismaService: PrismaService) {}
 
   async createOptionsVoted(
-    voto: CreateVotoDto,
+    optionsVoted: CreateOpcaoVotadaDto[],
     idVote: number,
     prisma: Omit<
       PrismaClient<Prisma.PrismaClientOptions, never, DefaultArgs>,
@@ -19,15 +18,14 @@ export class ParticipacaoService {
     >,
   ) {
     // Transforma os dados das opções votadas em uma lista de dicionários do tipo {idVote, idOpcao} usando map
-    const optionsVoted = voto.opcoesVotadas.map((optionVoted) => ({
+    const optionsVotedMap = optionsVoted.map((optionVoted) => ({
       voto_id: idVote,
       opcao_id: optionVoted.id_opcao,
     }));
 
-    console.log(optionsVoted);
     // Cria no banco todas as opcoes_votadas
     await prisma.opcao_Votada.createMany({
-      data: optionsVoted,
+      data: optionsVotedMap,
     });
   }
 
@@ -38,15 +36,12 @@ export class ParticipacaoService {
 
   // Método para criação do voto
   async createVote(
-    voto: CreateVotoDto,
+    hash: string,
     prisma: Omit<
       PrismaClient<Prisma.PrismaClientOptions, never, DefaultArgs>,
       '$connect' | '$disconnect' | '$on' | '$transaction' | '$use' | '$extends'
     >,
   ) {
-    // Geracao da hash
-    const hash = await this.generateHash(voto.opcoesVotadas);
-
     // Criacao do voto passando sua hash
     const vote = await prisma.voto.create({
       data: {
@@ -66,33 +61,47 @@ export class ParticipacaoService {
       PrismaClient<Prisma.PrismaClientOptions, never, DefaultArgs>,
       '$connect' | '$disconnect' | '$on' | '$transaction' | '$use' | '$extends'
     >,
-  ): Promise<number> {
+  ) {
     // Executa a query SQL para inserir a participação
-    const participation = await prisma.participacao.create({
+    await prisma.participacao.create({
       data: {
         pesquisa_id: idSurvey,
         usuario_id: idUser,
       },
     });
-
-    // Retorna o ID da participacao criada
-    return participation.id;
   }
 
+  // Criação da participação em uma pesquisa e retorno da hash do voto
   async create(createParticipacaoDto: CreateParticipacaoDto, idUser: number, idSurvey: number): Promise<string> {
-    const { voto } = createParticipacaoDto;
-    // Geracao da hash
-    const hash = await this.generateHash(voto.opcoesVotadas);
+    try {
+      const { voto } = createParticipacaoDto;
+      const optionsVoted = voto.opcoesVotadas;
+      // Geracao da hash
+      const hash = await this.generateHash(voto.opcoesVotadas);
 
-    return await this.prismaService.$transaction(async (prisma) => {
-      const idParticipation = await this.createParticipation(idUser, idSurvey, prisma);
-      const idVote = await this.createVote(voto, prisma);
-      await this.createOptionsVoted(voto, idVote, prisma);
-      return `Participação criada com sucesso de id: ${idParticipation}`;
-    });
+      return await this.prismaService.$transaction(async (prisma) => {
+        // Criacao da participação
+        await this.createParticipation(idUser, idSurvey, prisma);
+
+        // Criação do voto passando a hash
+        const idVote = await this.createVote(hash, prisma);
+
+        // Criação das Opções Votadas
+        await this.createOptionsVoted(optionsVoted, idVote, prisma);
+        return hash;
+      });
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        throw new HttpException(error.message, HttpStatus.CONFLICT);
+      } else throw new InternalServerErrorException('Erro interno ao criar uma pesquisa');
+    }
   }
 
-  getById(id: number): string {
-    return `Retornando participação com o id ${id.toString()}`;
+  async getById(id: number) {
+    return await this.prismaService.participacao.findUnique({
+      where: {
+        id: id,
+      },
+    });
   }
 }

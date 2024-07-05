@@ -7,10 +7,4 @@ export class CreateParticipacaoDto {
   @ValidateNested({ each: true, message: 'Cada voto deve ser válido.' })
   @Type(() => CreateVotoDto)
   voto: CreateVotoDto;
-
-  // @IsArray({ message: 'opcoesVotadas deve ser um array.' })
-  // @ArrayMinSize(1, { message: 'Deve haver pelo menos uma opcaoVotada.' })
-  // @ValidateNested({ each: true, message: 'Cada opcaoVotada deve ser válida.' })
-  // @Type(() => CreateOpcaoVotadaDto)
-  // opcoesVotadas: CreateOpcaoVotadaDto[];
 }
