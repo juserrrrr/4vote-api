@@ -6,6 +6,7 @@ import { CreateOpcaoDto } from '../opcao/dto/create-opcao.dto';
 import { Prisma, PrismaClient } from '@prisma/client';
 import { DefaultArgs } from '@prisma/client/runtime/library';
 import { CreateTagDto } from '../tag/dto/create-tag.dto';
+import { filterPesquisaDto } from './dto/filter-pesquisa.dto';
 @Injectable()
 export class PesquisaService {
   constructor(private readonly prismaService: PrismaService) {}
@@ -98,28 +99,52 @@ export class PesquisaService {
     await prisma.$executeRawUnsafe(sqlQuery, ...params);
   }
 
-  async createTags(
+  async checkExistingTags(
     tags: CreateTagDto[],
     prisma: Omit<
       PrismaClient<Prisma.PrismaClientOptions, never, DefaultArgs>,
       '$connect' | '$disconnect' | '$on' | '$transaction' | '$use' | '$extends'
     >,
-  ): Promise<number[]> {
-    // Cria um placeholder para cada tag
-    const valuesPlaceholder = tags.map(() => '(?)').join(',');
-    // Cria a query SQL para inserir as tags
-    const sqlQuery = `INSERT INTO Tag (nome) VALUES ${valuesPlaceholder}`;
-    // Cria um array com os parâmetros para a query SQL
-    const params = tags.flatMap((tag) => [tag.nome]);
-    // Executa a query SQL
-    await prisma.$executeRawUnsafe(sqlQuery, ...params);
+  ) {
+    const tagsNames = tags.map((tag) => tag.nome);
+    const valuesPlaceholder = tagsNames.map(() => '?').join(',');
+    const sqlQuery = `SELECT id, nome FROM Tag WHERE nome IN (${valuesPlaceholder})`;
+    const result = await prisma.$queryRawUnsafe<{ id: number; nome: string }[]>(sqlQuery, ...tagsNames);
+    const existingTags = result.map((tag) => tag.nome);
+    return existingTags;
+  }
 
-    // Busca os IDs das tags criadas, usando placeholder e params
+  async createTags(
+    tags: CreateTagDto[],
+    existingTags: string[],
+    prisma: Omit<
+      PrismaClient<Prisma.PrismaClientOptions, never, DefaultArgs>,
+      '$connect' | '$disconnect' | '$on' | '$transaction' | '$use' | '$extends'
+    >,
+  ): Promise<number[]> {
+    // Filtra as tags que não existem
+    const newTags = tags.filter((tag) => !existingTags.includes(tag.nome));
+    // Verifica se existem tags para serem criadas
+    if (newTags.length > 0) {
+      // Cria um placeholder para cada tag
+      const valuesPlaceholder = newTags.map(() => '(?)').join(',');
+      // Cria a query SQL para inserir as tags
+      const sqlQuery = `INSERT INTO Tag (nome) VALUES ${valuesPlaceholder}`;
+      // Cria um array com os parâmetros para a query SQL
+      const newParamsTags = tags.map((tag) => tag.nome);
+      // Executa a query SQL
+      await prisma.$executeRawUnsafe(sqlQuery, ...newParamsTags);
+    }
+
+    // Cria um array com os parâmetros para a query SQL
+    const paramsTags = tags.map((tag) => tag.nome);
+    // Busca os IDs das tags criadas, usando placeholder e paramsTags
     const valuesPlaceholderTags = tags.map(() => '?').join(',');
     const sqlQueryTags = `SELECT id FROM Tag WHERE nome IN (${valuesPlaceholderTags})`;
-    const resultIds = await prisma.$queryRawUnsafe<{ id: number }[]>(sqlQueryTags, ...params);
+    // busca os ids das tags criadas
+    const resultIds = await prisma.$queryRawUnsafe<{ id: number }[]>(sqlQueryTags, ...paramsTags);
+    const tagIds = resultIds.flatMap((tag) => tag.id);
 
-    const tagIds = resultIds.map((tag) => tag.id);
     return tagIds ? tagIds : null;
   }
 
@@ -145,17 +170,22 @@ export class PesquisaService {
     try {
       // Gera um código aleatório
       const codigo = await this.generateUniqueCode();
+      // Separa as perguntas, tags e os demais dados da pesquisa
+      const { perguntas, tags, ...pesquisa } = createPesquisaDto;
       return await this.prismaService.$transaction(async (prisma) => {
-        const { perguntas, tags, ...pesquisa } = createPesquisaDto;
-
+        // Cria a pesquisa e retorna o código
         const surveyId = await this.createSurvey(pesquisa, idUser, codigo, prisma);
-
+        // Cria as perguntas e retorna os IDs
         const idsPergunta = await this.createQuestions(surveyId, perguntas, prisma);
+        // Cria as opções das perguntas
         await Promise.all(
           idsPergunta.map((idPergunta, index) => this.createOptions(idPergunta, perguntas[index].opcoes, prisma)),
         );
-
-        const idsTags = await this.createTags(tags, prisma);
+        // Verifica se as tags já existem e retorna as que existem
+        const existingTags = await this.checkExistingTags(tags, prisma);
+        // Cria as tags que não existem e retorna os IDs
+        const idsTags = await this.createTags(tags, existingTags, prisma);
+        // Sincroniza as tags com a pesquisa
         await this.createSyncTagSurvery(surveyId, idsTags, prisma);
 
         const { titulo } = pesquisa;
@@ -180,6 +210,13 @@ export class PesquisaService {
       throw new InternalServerErrorException('Erro interno ao buscar as pesquisas');
     }
   }
+
+  //Criar um filtro para mostrar as pesquisas arquivadas pelo proprio usuario que criou, as que ele participou e as encerradas
+  //Os valores vão ser passador por query params
+  async filterSurveys(
+    { arquivada = false, criador = false, encerradas = false, participo = false }: filterPesquisaDto,
+    idUser: number,
+  ) {}
 
   async getById(id: number) {
     try {
