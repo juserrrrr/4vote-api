@@ -216,7 +216,54 @@ export class PesquisaService {
   async filterSurveys(
     { arquivada = false, criador = false, encerradas = false, participo = false }: filterPesquisaDto,
     idUser: number,
-  ) {}
+  ) {
+    // Query SQL para buscar as pesquisas padrão
+    let querySql = `
+    SELECT p.*
+    FROM Pesquisa p
+    `;
+    // Verifica se o filtro de participação está ativo
+    if (participo) {
+      querySql += `
+      JOIN Participacao pt ON p.id = pt.pesquisa_id
+      `;
+    }
+
+    // Adiciona as condições do filtro que não dependem tanto do parametro
+    querySql += `
+    WHERE p.arquivado = ?
+    AND p.dataTermino ${encerradas ? '<' : '>='} NOW()
+    `;
+
+    // Adciona condições que dependem de outras passadas acima
+    if (participo) {
+      querySql += `
+      AND pt.usuario_id = ?
+      `;
+    }
+    // Adiciona condições que dependem de outras passadas acima
+    if (criador) {
+      querySql += `AND p.criador = ?`;
+    }
+    // Cria um array com os parâmetros para a query SQL
+    const params: (boolean | number)[] = [arquivada];
+    // Adiciona os parâmetros que dependem dos filtros
+    if (participo) {
+      params.push(idUser);
+    }
+    if (criador) {
+      params.push(idUser);
+    }
+    try {
+      const surverys = await this.prismaService.$queryRawUnsafe(querySql, ...params);
+      return surverys;
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
+      }
+      new InternalServerErrorException('Erro interno ao buscar as pesquisas');
+    }
+  }
 
   async getById(id: number) {
     try {
