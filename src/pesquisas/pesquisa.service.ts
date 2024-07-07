@@ -234,24 +234,18 @@ export class PesquisaService {
     WHERE p.arquivado = ?
     AND p.dataTermino ${encerradas ? '<' : '>='} NOW()
     `;
-
+    // Cria um array com os parâmetros para a query SQL
+    const params: (boolean | number)[] = [arquivada];
     // Adciona condições que dependem de outras passadas acima
     if (participo) {
       querySql += `
       AND pt.usuario_id = ?
       `;
+      params.push(idUser);
     }
     // Adiciona condições que dependem de outras passadas acima
     if (criador) {
       querySql += `AND p.criador = ?`;
-    }
-    // Cria um array com os parâmetros para a query SQL
-    const params: (boolean | number)[] = [arquivada];
-    // Adiciona os parâmetros que dependem dos filtros
-    if (participo) {
-      params.push(idUser);
-    }
-    if (criador) {
       params.push(idUser);
     }
     try {
