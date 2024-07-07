@@ -39,17 +39,17 @@ export class PesquisaService {
     >,
   ): Promise<number> {
     // Executa a query SQL para inserir a pesquisa
-    await prisma.$executeRaw`
-      INSERT INTO Pesquisa (codigo, criador, titulo, descricao, dataTermino, ehPublico, URLimagem, ehVotacao)
-      VALUES (${codigo}, ${idUser}, ${createPerguntaDto.titulo}, ${createPerguntaDto.descricao}, ${createPerguntaDto.dataTermino}, ${createPerguntaDto.ehPublico}, ${createPerguntaDto.URLimagem}, ${createPerguntaDto.ehVotacao})
-    `;
+    await prisma.$executeRaw(Prisma.sql`
+    INSERT INTO Pesquisa (codigo, criador, titulo, descricao, dataTermino, ehPublico, URLimagem, ehVotacao)
+    VALUES (${codigo}, ${idUser}, ${createPerguntaDto.titulo}, ${createPerguntaDto.descricao}, ${createPerguntaDto.dataTermino}, ${createPerguntaDto.ehPublico}, ${createPerguntaDto.URLimagem}, ${createPerguntaDto.ehVotacao})
+    `);
     // Busca o ID da pesquisa criada
-    const result = await prisma.$queryRaw`
-      SELECT LAST_INSERT_ID() as id;
-    `;
+    const result = await prisma.$queryRaw<{ id: number }[]>(Prisma.sql`
+    SELECT LAST_INSERT_ID() as id;
+    `);
     // Retorna o ID da pesquisa criada
     const surveyId = Number(result[0].id);
-    return surveyId ? surveyId : null;
+    return surveyId || null;
   }
 
   // Função para criar as perguntas de uma pesquisa
@@ -61,23 +61,24 @@ export class PesquisaService {
       '$connect' | '$disconnect' | '$on' | '$transaction' | '$use' | '$extends'
     >,
   ): Promise<number[]> {
-    // Cria um placeholder para cada pergunta
-    const valuesPlaceholder = createPerguntaDto.map(() => '(?, ?, ?)').join(',');
+    // Cria um array de valores SQL para os placeholders
+    const values = createPerguntaDto.map(
+      (pergunta) => Prisma.sql`(${pergunta.texto}, ${idPesquisa}, ${pergunta.URLimagem})`,
+    );
     // Cria a query SQL para inserir as perguntas
-    const sqlQuery = `INSERT INTO Pergunta (texto, pesquisa_id, URLimagem) VALUES ${valuesPlaceholder}`;
-    // Cria um array com os parâmetros para a query SQL
-    const params = createPerguntaDto.flatMap((pergunta) => [pergunta.texto, idPesquisa, pergunta.URLimagem]);
+    const sqlQuery = Prisma.sql`
+    INSERT INTO Pergunta (texto, pesquisa_id, URLimagem)
+    VALUES ${Prisma.join(values, `, `)}
+    `;
     // Executa a query SQL
-    await prisma.$executeRawUnsafe(sqlQuery, ...params);
-
+    await prisma.$executeRaw(sqlQuery);
     // Busca os IDs das perguntas criadas
-    const resultIds = await prisma.$queryRaw<{ id: number }[]>`
+    const resultIds = await prisma.$queryRaw<{ id: number }[]>(Prisma.sql`
     SELECT id FROM Pergunta WHERE pesquisa_id = ${idPesquisa}
-  `;
-
+    `);
     // Retorna os IDs das perguntas criadas
     const questionIds = resultIds.map((pergunta) => pergunta.id);
-    return questionIds ? questionIds : null;
+    return questionIds || null;
   }
 
   // Função para criar as opções de uma pergunta
@@ -89,14 +90,15 @@ export class PesquisaService {
       '$connect' | '$disconnect' | '$on' | '$transaction' | '$use' | '$extends'
     >,
   ) {
-    // Cria um placeholder para cada opção
-    const valuesPlaceholder = createOpcaoDto.map(() => '(?, ?)').join(',');
+    // Cria um array de valores SQL para os placeholders
+    const values = createOpcaoDto.map((opcao) => Prisma.sql`(${opcao.texto}, ${idPergunta})`);
     // Cria a query SQL para inserir as opções
-    const sqlQuery = `INSERT INTO Opcao (texto, pergunta_id) VALUES ${valuesPlaceholder}`;
-    // Cria um array com os parâmetros para a query SQL
-    const params = createOpcaoDto.flatMap((opcao) => [opcao.texto, idPergunta]);
+    const sqlQuery = Prisma.sql`
+    INSERT INTO Opcao (texto, pergunta_id)
+    VALUES ${Prisma.join(values, `, `)}
+    `;
     // Executa a query SQL
-    await prisma.$executeRawUnsafe(sqlQuery, ...params);
+    await prisma.$executeRaw(sqlQuery);
   }
 
   async checkExistingTags(
@@ -107,9 +109,13 @@ export class PesquisaService {
     >,
   ) {
     const tagsNames = tags.map((tag) => tag.nome);
-    const valuesPlaceholder = tagsNames.map(() => '?').join(',');
-    const sqlQuery = `SELECT id, nome FROM Tag WHERE nome IN (${valuesPlaceholder})`;
-    const result = await prisma.$queryRawUnsafe<{ id: number; nome: string }[]>(sqlQuery, ...tagsNames);
+    // Constrói a query SQL usando Prisma.sql
+    const sqlQuery = Prisma.sql`
+      SELECT id, nome FROM Tag
+      WHERE nome IN (${Prisma.join(tagsNames, `, `)})
+    `;
+    // Executa a query SQL
+    const result = await prisma.$queryRaw<{ id: number; nome: string }[]>(sqlQuery);
     const existingTags = result.map((tag) => tag.nome);
     return existingTags;
   }
@@ -126,26 +132,29 @@ export class PesquisaService {
     const newTags = tags.filter((tag) => !existingTags.includes(tag.nome));
     // Verifica se existem tags para serem criadas
     if (newTags.length > 0) {
-      // Cria um placeholder para cada tag
-      const valuesPlaceholder = newTags.map(() => '(?)').join(',');
+      // Cria um array de valores SQL para os placeholders
+      const values = newTags.map((tag) => Prisma.sql`(${tag.nome})`);
       // Cria a query SQL para inserir as tags
-      const sqlQuery = `INSERT INTO Tag (nome) VALUES ${valuesPlaceholder}`;
-      // Cria um array com os parâmetros para a query SQL
-      const newParamsTags = tags.map((tag) => tag.nome);
+      const sqlQuery = Prisma.sql`
+      INSERT INTO Tag (nome)
+      VALUES ${Prisma.join(values, `, `)}
+      `;
       // Executa a query SQL
-      await prisma.$executeRawUnsafe(sqlQuery, ...newParamsTags);
+      await prisma.$executeRaw(sqlQuery);
     }
-
     // Cria um array com os parâmetros para a query SQL
     const paramsTags = tags.map((tag) => tag.nome);
-    // Busca os IDs das tags criadas, usando placeholder e paramsTags
-    const valuesPlaceholderTags = tags.map(() => '?').join(',');
-    const sqlQueryTags = `SELECT id FROM Tag WHERE nome IN (${valuesPlaceholderTags})`;
-    // busca os ids das tags criadas
-    const resultIds = await prisma.$queryRawUnsafe<{ id: number }[]>(sqlQueryTags, ...paramsTags);
-    const tagIds = resultIds.flatMap((tag) => tag.id);
 
-    return tagIds ? tagIds : null;
+    // Cria a query SQL para buscar os IDs das tags criadas
+    const sqlQueryTags = Prisma.sql`
+    SELECT id FROM Tag
+    WHERE nome IN (${Prisma.join(paramsTags, `, `)})
+    `;
+    // Busca os IDs das tags criadas
+    const resultIds = await prisma.$queryRaw<{ id: number }[]>(sqlQueryTags);
+    const tagIds = resultIds.map((tag) => tag.id);
+
+    return tagIds.length > 0 ? tagIds : null;
   }
 
   async createSyncTagSurvery(
@@ -156,14 +165,15 @@ export class PesquisaService {
       '$connect' | '$disconnect' | '$on' | '$transaction' | '$use' | '$extends'
     >,
   ) {
-    // Cria um placeholder para cada tag
-    const valuesPlaceholder = idsTag.map(() => '(?, ?)').join(',');
-    // Cria a query SQL para inserir as tags
-    const sqlQuery = `INSERT INTO Tag_Pesquisa (pesquisa_id, tag_id) VALUES ${valuesPlaceholder}`;
-    // Cria um array com os parâmetros para a query SQL
-    const params = idsTag.flatMap((idTag) => [idSurvey, idTag]);
+    // Cria um array de valores SQL para os placeholders
+    const values = idsTag.map((idTag) => Prisma.sql`(${idSurvey}, ${idTag})`);
+    // Constrói a query SQL
+    const sqlQuery = Prisma.sql`
+    INSERT INTO Tag_Pesquisa (pesquisa_id, tag_id)
+    VALUES ${Prisma.join(values, `, `)}
+    `;
     // Executa a query SQL
-    await prisma.$executeRawUnsafe(sqlQuery, ...params);
+    await prisma.$executeRaw(sqlQuery);
   }
 
   async create(createPesquisaDto: CreatePesquisaDto, idUser: number) {
@@ -221,35 +231,32 @@ export class PesquisaService {
     let querySql = Prisma.sql`
       SELECT p.*
       FROM Pesquisa p
-    `;
-
+      `;
     // Verifica se o filtro de participação está ativo
     if (participo) {
       querySql = Prisma.sql`
         ${querySql}
         JOIN Participacao pt ON p.id = pt.pesquisa_id
-      `;
+        `;
     }
-
     // Adiciona as condições do filtro que não dependem tanto do parâmetro
     querySql = Prisma.sql`
       ${querySql}
       WHERE p.arquivado = ${arquivada}
       AND p.dataTermino ${encerradas ? Prisma.sql`<` : Prisma.sql`>=`} NOW()
-    `;
-
+      `;
     // Adiciona condições que dependem de outros parâmetros
     if (participo) {
       querySql = Prisma.sql`
         ${querySql}
         AND pt.usuario_id = ${idUser}
-      `;
+        `;
     }
     if (criador) {
       querySql = Prisma.sql`
         ${querySql}
         AND p.criador = ${idUser}
-      `;
+        `;
     }
 
     try {
