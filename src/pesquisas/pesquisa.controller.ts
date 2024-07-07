@@ -19,20 +19,15 @@ export class PesquisaController {
     return this.pesquisaService.create(createPesquisaDto, idUser);
   }
 
-  @Get()
-  findAll() {
-    return this.pesquisaService.findAll();
+  @Get(':code')
+  findAll(@Param('code') code: string) {
+    return this.pesquisaService.findByCode(code);
   }
 
   @Get('filtro')
   filter(@Query() query: filterPesquisaDto, @Req() req: any) {
     const idUser = req.user.sub;
     return this.pesquisaService.filterSurveys(query, idUser);
-  }
-
-  @Get(':id')
-  getById(@Param('id', new ParseIntPipe()) id: number) {
-    return this.pesquisaService.getById(id);
   }
 
   @Patch('arquivar/:id')

@@ -7,6 +7,18 @@ import { Prisma, PrismaClient } from '@prisma/client';
 import { DefaultArgs } from '@prisma/client/runtime/library';
 import { CreateTagDto } from '../tag/dto/create-tag.dto';
 import { filterPesquisaDto } from './dto/filter-pesquisa.dto';
+
+interface SurveyQueryResult {
+  codigo: string;
+  titulo: string;
+  descricao: string;
+  dataTermino: Date;
+  ehPublico: boolean;
+  URLimagem: string;
+  ehVotacao: boolean;
+  Pergunta: string;
+  Opcao: string;
+}
 @Injectable()
 export class PesquisaService {
   constructor(private readonly prismaService: PrismaService) {}
@@ -208,19 +220,52 @@ export class PesquisaService {
     }
   }
 
-  async findAll() {
+  async findByCode(code: string) {
     try {
-      const surverys = await this.prismaService.$queryRaw`
-        SELECT Pesquisa.id, Pesquisa.titulo, Pesquisa.descricao, Pesquisa.dataTermino, Pesquisa.ehPublico, Pesquisa.URLimagem, Pesquisa.ehVotacao
+      //Puxar as informações de perguntas e opções
+      const surverys = await this.prismaService.$queryRaw<SurveyQueryResult[]>`
+        SELECT Pesquisa.codigo, Pesquisa.titulo, Pesquisa.descricao, Pesquisa.dataTermino, Pesquisa.ehPublico, Pesquisa.URLimagem, Pesquisa.ehVotacao, Pergunta.texto AS Pergunta, Opcao.texto AS Opcao
         FROM Pesquisa
-        WHERE Pesquisa.arquivado = false AND Pesquisa.dataTermino >= NOW()
+        JOIN Pergunta ON Pesquisa.id = Pergunta.pesquisa_id
+        JOIN Opcao ON Pergunta.id = Opcao.pergunta_id
+        WHERE Pesquisa.codigo = ${code}
         `;
-      return surverys;
+      // Transformar o resultado em um objeto com as perguntas e opções
+      const result = surverys.reduce((acc, survey) => {
+        // Verifica se a pesquisa já foi adicionada
+        const surveyIndex = acc.findIndex((item) => item.codigo === survey.codigo);
+        // Caso a pesquisa não tenha sido adicionada ainda ela é adicionada
+        if (surveyIndex === -1) {
+          acc.push({
+            codigo: survey.codigo,
+            titulo: survey.titulo,
+            descricao: survey.descricao,
+            dataTermino: survey.dataTermino,
+            ehPublico: survey.ehPublico,
+            URLimagem: survey.URLimagem,
+            ehVotacao: survey.ehVotacao,
+            perguntas: [{ texto: survey.Pergunta, opcoes: [survey.Opcao] }],
+          });
+          // Caso a pesquisa já tenha sido adicionada, é adicionada a pergunta e a opção
+        } else {
+          // Verifica se a pergunta já foi adicionada
+          const questionIndex = acc[surveyIndex].perguntas.findIndex((question) => question.texto === survey.Pergunta);
+          // Caso a pergunta não tenha sido adicionada ainda ela é adicionada
+          if (questionIndex === -1) {
+            acc[surveyIndex].perguntas.push({ texto: survey.Pergunta, opcoes: [survey.Opcao] });
+            // Caso a pergunta já tenha sido adicionada, é adicionada a opção
+          } else {
+            acc[surveyIndex].perguntas[questionIndex].opcoes.push(survey.Opcao);
+          }
+        }
+        return acc;
+      }, []);
+      return result;
     } catch (error) {
+      console.log(error);
       throw new InternalServerErrorException('Erro interno ao buscar as pesquisas');
     }
   }
-
   //Criar um filtro para mostrar as pesquisas arquivadas pelo proprio usuario que criou, as que ele participou e as encerradas
   //Os valores vão ser passador por query params
   async filterSurveys(
@@ -229,7 +274,7 @@ export class PesquisaService {
   ) {
     // Inicializa a query SQL para buscar as pesquisas padrão
     let querySql = Prisma.sql`
-      SELECT p.*
+      SELECT p.codigo, p.titulo, p.descricao, p.dataTermino, p.URLimagem
       FROM Pesquisa p
       `;
     // Verifica se o filtro de participação está ativo
@@ -267,19 +312,6 @@ export class PesquisaService {
         throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
       }
       throw new InternalServerErrorException('Erro interno ao buscar as pesquisas');
-    }
-  }
-
-  async getById(id: number) {
-    try {
-      const survery = await this.prismaService.$queryRaw`
-        SELECT Pesquisa.id, Pesquisa.titulo, Pesquisa.descricao, Pesquisa.dataTermino, Pesquisa.ehPublico, Pesquisa.URLimagem, Pesquisa.ehVotacao
-        FROM Pesquisa
-        WHERE Pesquisa.id = ${id}
-        `;
-      return survery;
-    } catch (error) {
-      throw new InternalServerErrorException('Erro interno ao buscar a pesquisa');
     }
   }
 
