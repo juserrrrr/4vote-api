@@ -217,45 +217,49 @@ export class PesquisaService {
     { arquivada = false, criador = false, encerradas = false, participo = false }: filterPesquisaDto,
     idUser: number,
   ) {
-    // Query SQL para buscar as pesquisas padrão
-    let querySql = `
-    SELECT p.*
-    FROM Pesquisa p
+    // Inicializa a query SQL para buscar as pesquisas padrão
+    let querySql = Prisma.sql`
+      SELECT p.*
+      FROM Pesquisa p
     `;
+
     // Verifica se o filtro de participação está ativo
     if (participo) {
-      querySql += `
-      JOIN Participacao pt ON p.id = pt.pesquisa_id
+      querySql = Prisma.sql`
+        ${querySql}
+        JOIN Participacao pt ON p.id = pt.pesquisa_id
       `;
     }
 
-    // Adiciona as condições do filtro que não dependem tanto do parametro
-    querySql += `
-    WHERE p.arquivado = ?
-    AND p.dataTermino ${encerradas ? '<' : '>='} NOW()
+    // Adiciona as condições do filtro que não dependem tanto do parâmetro
+    querySql = Prisma.sql`
+      ${querySql}
+      WHERE p.arquivado = ${arquivada}
+      AND p.dataTermino ${encerradas ? Prisma.sql`<` : Prisma.sql`>=`} NOW()
     `;
-    // Cria um array com os parâmetros para a query SQL
-    const params: (boolean | number)[] = [arquivada];
-    // Adciona condições que dependem de outras passadas acima
+
+    // Adiciona condições que dependem de outros parâmetros
     if (participo) {
-      querySql += `
-      AND pt.usuario_id = ?
+      querySql = Prisma.sql`
+        ${querySql}
+        AND pt.usuario_id = ${idUser}
       `;
-      params.push(idUser);
     }
-    // Adiciona condições que dependem de outras passadas acima
     if (criador) {
-      querySql += `AND p.criador = ?`;
-      params.push(idUser);
+      querySql = Prisma.sql`
+        ${querySql}
+        AND p.criador = ${idUser}
+      `;
     }
+
     try {
-      const surverys = await this.prismaService.$queryRawUnsafe(querySql, ...params);
-      return surverys;
+      const surveys = await this.prismaService.$queryRaw(querySql);
+      return surveys;
     } catch (error) {
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
         throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
       }
-      new InternalServerErrorException('Erro interno ao buscar as pesquisas');
+      throw new InternalServerErrorException('Erro interno ao buscar as pesquisas');
     }
   }
 
