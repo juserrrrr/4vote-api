@@ -1,9 +1,10 @@
-import { Controller, Get, Post, Body, Param, ParseIntPipe, Patch } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, ParseIntPipe, Patch, Req, UseGuards, Query } from '@nestjs/common';
 import { PesquisaService } from './pesquisa.service';
 import { CreatePesquisaDto } from './dto/create-pesquisa.dto';
-import { CreatePerguntaDto } from '../perguntas/dto/create-pergunta.dto';
-import { CreateOpcaoDto } from '../opcao/dto/create-opcao.dto';
+import { AuthGuard } from '../auth/auth.guard';
+import { filterPesquisaDto } from './dto/filter-pesquisa.dto';
 
+@UseGuards(AuthGuard)
 @Controller('pesquisas')
 export class PesquisaController {
   constructor(private readonly pesquisaService: PesquisaService) {}
@@ -12,24 +13,26 @@ export class PesquisaController {
   create(
     @Body()
     createPesquisaDto: CreatePesquisaDto,
-    createPerguntaDto: CreatePerguntaDto,
-    createOpcaoDto: CreateOpcaoDto,
+    @Req() req: any,
   ) {
-    return this.pesquisaService.create(createPesquisaDto, createPerguntaDto, createOpcaoDto);
+    const idUser = req.user.sub;
+    return this.pesquisaService.create(createPesquisaDto, idUser);
   }
 
-  @Get()
-  findAll() {
-    return this.pesquisaService.findAll();
+  @Get(':code')
+  findAll(@Param('code') code: string) {
+    return this.pesquisaService.findByCode(code);
   }
 
-  @Get(':id')
-  getById(@Param('id', new ParseIntPipe()) id: number) {
-    return this.pesquisaService.getById(id);
+  @Get('filtro')
+  filter(@Query() query: filterPesquisaDto, @Req() req: any) {
+    const idUser = req.user.sub;
+    return this.pesquisaService.filterSurveys(query, idUser);
   }
 
   @Patch('arquivar/:id')
-  updateArquivar(@Param('id', new ParseIntPipe()) id: number) {
-    return this.pesquisaService.updateArquivar(id);
+  updateArquivar(@Param('id', new ParseIntPipe()) idSurvey: number, @Req() req: any) {
+    const idUser = Number(req.user.sub);
+    return this.pesquisaService.updateArquivar(idSurvey, idUser);
   }
 }

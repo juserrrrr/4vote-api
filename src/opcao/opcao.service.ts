@@ -1,8 +1,17 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class OpcaoService {
-  findOne(id: number): string {
-    return `Aqui retorna a opção com o id ${id.toString}`;
+  constructor(private readonly prismaService: PrismaService) {}
+  findOne(id: number) {
+    try {
+      const option = this.prismaService.$queryRaw`
+      SELECT * FROM Opcao WHERE id = ${id};
+      `;
+      return option;
+    } catch (error) {
+      throw new InternalServerErrorException('Erro ao buscar opção');
+    }
   }
 }
