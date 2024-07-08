@@ -10,6 +10,7 @@ export class UploadController {
   @Post('/')
   @UseInterceptors(FileInterceptor('file'))
   async uploadFile(@UploadedFile() file: FileDTO) {
-    console.log(file);
+    const result = await this.uploadService.upload(file);
+    return result;
   }
 }
