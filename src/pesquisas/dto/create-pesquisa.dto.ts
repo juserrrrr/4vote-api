@@ -52,7 +52,8 @@ export class CreatePesquisaDto {
   perguntas: CreatePerguntaDto[];
 
   @IsArray({ message: 'Tags deve ser um array.' })
+  @IsOptional({ message: 'Tags é opcional.' })
   @ValidateNested({ each: true, message: 'Cada tag deve ser válida.' })
   @Type(() => CreateTagDto)
-  tags: CreateTagDto[];
+  tags?: CreateTagDto[];
 }

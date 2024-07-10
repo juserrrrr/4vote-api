@@ -203,17 +203,20 @@ export class PesquisaService {
         await Promise.all(
           idsPergunta.map((idPergunta, index) => this.createOptions(idPergunta, perguntas[index].opcoes, prisma)),
         );
-        // Verifica se as tags já existem e retorna as que existem
-        const existingTags = await this.checkExistingTags(tags, prisma);
-        // Cria as tags que não existem e retorna os IDs
-        const idsTags = await this.createTags(tags, existingTags, prisma);
-        // Sincroniza as tags com a pesquisa
-        await this.createSyncTagSurvery(surveyId, idsTags, prisma);
+        if (tags?.length > 0) {
+          // Verifica se as tags já existem e retorna as que existem
+          const existingTags = await this.checkExistingTags(tags, prisma);
+          // Cria as tags que não existem e retorna os IDs
+          const idsTags = await this.createTags(tags, existingTags, prisma);
+          // Sincroniza as tags com a pesquisa
+          await this.createSyncTagSurvery(surveyId, idsTags, prisma);
+        }
 
         const { titulo } = pesquisa;
         return { codigo, titulo };
       });
     } catch (error) {
+      console.log(error);
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
         throw new HttpException(error.message, HttpStatus.CONFLICT);
       } else throw new InternalServerErrorException('Erro interno ao criar uma pesquisa');
