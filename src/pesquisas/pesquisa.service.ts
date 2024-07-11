@@ -216,7 +216,6 @@ export class PesquisaService {
         return { codigo, titulo };
       });
     } catch (error) {
-      console.log(error);
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
         throw new HttpException(error.message, HttpStatus.CONFLICT);
       } else throw new InternalServerErrorException('Erro interno ao criar uma pesquisa');
@@ -265,7 +264,6 @@ export class PesquisaService {
       }, []);
       return result;
     } catch (error) {
-      console.log(error);
       throw new InternalServerErrorException('Erro interno ao buscar as pesquisas');
     }
   }
