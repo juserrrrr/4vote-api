@@ -1,14 +1,32 @@
-import { HttpException, HttpStatus, Injectable, InternalServerErrorException } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { CreateParticipacaoDto } from './dto/create-participacao.dto';
 import { PrismaService } from '../prisma/prisma.service';
 import { Prisma, PrismaClient } from '@prisma/client';
 import { DefaultArgs } from '@prisma/client/runtime/library';
 import { CreateOpcaoVotadaDto } from '../opcaoVotada/dto/create-opcaovotada.dto';
+import * as crypto from 'crypto';
 
 @Injectable()
 export class ParticipacaoService {
   constructor(private readonly prismaService: PrismaService) {}
 
+  // Checa se o usuário já votou naquela pesquisa
+  async checkUser(
+    idUser: number,
+    idSurvey: number,
+    prisma: Omit<
+      PrismaClient<Prisma.PrismaClientOptions, never, DefaultArgs>,
+      '$connect' | '$disconnect' | '$on' | '$transaction' | '$use' | '$extends'
+    >,
+  ) {
+    const query = await prisma.participacao.findUnique({
+      where: {
+        usuario_id: idUser,
+        pesquisa_id: idSurvey,
+      },
+    });
+  }
+  // Checa se as opções votadas estão no Banco
   async checkOptions(
     optionsVoted: CreateOpcaoVotadaDto[],
     prisma: Omit<
@@ -30,11 +48,13 @@ export class ParticipacaoService {
     const validOptionIDs = validOptions.map((option) => option.id);
     const invalidOptions = optionsVotedIDs.filter((optionId) => !validOptionIDs.includes(optionId));
 
+    // Se houver opções inválidas (não há estas opções no Banco, será lançada uma exceção)
     if (invalidOptions.length > 0) {
-      throw new HttpException(`Opções inválidas: ${invalidOptions.join(', ')}`, HttpStatus.BAD_REQUEST);
+      throw new NotFoundException(`Opções inválidas: ${invalidOptions.join(', ')}`);
     }
   }
 
+  // Método para criação do opções votadas
   async createOptionsVoted(
     optionsVoted: CreateOpcaoVotadaDto[],
     idVote: number,
@@ -55,15 +75,60 @@ export class ParticipacaoService {
     });
   }
 
-  // Função para gerar uma hash (AINDA DEVE SER FEITA)
-  async generateHash(opcoesVotadas: CreateOpcaoVotadaDto[]): Promise<string> {
-    console.log(opcoesVotadas);
-    return 'hash1234567';
+  // Pega a hash do último voto. Se não houver voto anterior, um salt é criado
+  async getPreviousHash(
+    idSurvey,
+    prisma: Omit<
+      PrismaClient<Prisma.PrismaClientOptions, never, DefaultArgs>,
+      '$connect' | '$disconnect' | '$on' | '$transaction' | '$use' | '$extends'
+    >,
+  ): Promise<string> {
+    // Busca pelo último voto daquela pesquisa e retorna a sua hash
+    const hash: { hash: string }[] = await prisma.$queryRaw`
+      SELECT V.hash
+      FROM Voto V
+      JOIN Opcao_Votada OV ON V.id = OV.voto_id
+      JOIN Opcao O ON OV.opcao_id = O.id
+      JOIN Pergunta P ON O.pergunta_id = P.id
+      WHERE P.pesquisa_id = ${idSurvey}
+      ORDER BY V.data DESC
+      LIMIT 1;
+    `;
+    console.log(`hash achada: ${hash.length}`);
+
+    // Se for o primeiro voto daquela pesquisa, cria um Sal e o retorna
+    if (hash.length == 0) {
+      // Gerando o salt (32 bytes = 256 bits)
+      const salt = crypto.randomBytes(32).toString('hex');
+      console.log(`Salt gerado: ${salt}`);
+      return salt;
+    }
+
+    const hashValue = hash[0].hash;
+    // Retorna
+    return hashValue;
+  }
+
+  // Função para gerar uma hash
+  async generateHash(previousHash: string, optionsVoted: CreateOpcaoVotadaDto[], date: Date): Promise<string> {
+    // Pega os ids das opções votadas
+    const optionsVotedIDs = optionsVoted.map((option: CreateOpcaoVotadaDto) => option.idOption);
+
+    const dataVote = {
+      previousHash,
+      date,
+      optionsVotedIDs,
+    };
+
+    console.log(`Dados para gerar hash: ${JSON.stringify(dataVote)}`);
+
+    return crypto.createHash('sha256').update(JSON.stringify(dataVote)).digest('hex');
   }
 
   // Método para criação do voto
   async createVote(
     hash: string,
+    date: Date,
     prisma: Omit<
       PrismaClient<Prisma.PrismaClientOptions, never, DefaultArgs>,
       '$connect' | '$disconnect' | '$on' | '$transaction' | '$use' | '$extends'
@@ -73,6 +138,7 @@ export class ParticipacaoService {
     const vote = await prisma.voto.create({
       data: {
         hash: hash,
+        data: date,
       },
     });
 
@@ -80,7 +146,7 @@ export class ParticipacaoService {
     return vote.id;
   }
 
-  // Método para a criação da Participição e retorno do id
+  // Método para a criação da Participição
   async createParticipation(
     idUser: number,
     idSurvey: number,
@@ -102,28 +168,37 @@ export class ParticipacaoService {
   async create(createParticipacaoDto: CreateParticipacaoDto, idUser: number, idSurvey: number): Promise<string> {
     try {
       const { voto } = createParticipacaoDto;
-      const optionsVoted = voto.opcoesVotadas;
-
-      // Geracao da hash
-      const hash = await this.generateHash(voto.opcoesVotadas);
+      const optionsVoted = voto.opcoesVotadas; // Pegando opções votadas
 
       return await this.prismaService.$transaction(async (prisma) => {
+        // Checa se as opções votadas estão no Banco
         await this.checkOptions(optionsVoted, prisma);
-        // Criacao da participação
-        await this.createParticipation(idUser, idSurvey, prisma);
 
-        // Criação do voto passando a hash
-        const idVote = await this.createVote(hash, prisma);
+        //
 
-        // Criação das Opções Votadas
-        await this.createOptionsVoted(optionsVoted, idVote, prisma);
-        return hash;
-        return 'teste';
+        // // Criacao da participação
+        // await this.createParticipation(idUser, idSurvey, prisma);
+
+        // // Geracao da hash
+        // const previousHash = await this.getPreviousHash(idSurvey, prisma);
+        // console.log(`Hash anterior: ${previousHash}`);
+
+        // const now = new Date(); // Pega a data e hora atual
+        // const hash = await this.generateHash(previousHash, optionsVoted, now); // Gera Hash
+
+        // // Criação do voto passando a hash
+        // const idVote = await this.createVote(hash, now, prisma);
+
+        // // // Criação das Opções Votadas
+        // await this.createOptionsVoted(optionsVoted, idVote, prisma);
+        return 'hash';
       });
     } catch (error) {
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
         throw new HttpException(error.message, HttpStatus.CONFLICT);
-      } else throw new InternalServerErrorException('Erro interno ao criar uma participação');
+      } else if (error instanceof NotFoundException) {
+        throw new NotFoundException(error.message);
+      } else throw new InternalServerErrorException(error);
     }
   }
 
