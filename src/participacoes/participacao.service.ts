@@ -34,12 +34,24 @@ export class ParticipacaoService {
         },
       },
     });
-
-    console.log(query);
     if (query) {
       throw new ForbiddenException(`Usuário de ID ${idUser} já participou da pesquisa de id ${idSurvey}`);
     }
   }
+
+  // Checa se o usuário votou na mesma opção mais de uma vez
+  async checkDuplicatedOptions(optionsVoted: CreateOpcaoVotadaDto[]) {
+    // Pega os ids das opções votadas
+    const optionsVotedIDs = optionsVoted.map((option: CreateOpcaoVotadaDto) => option.idOption);
+
+    // Pega o index da primeira ocorrência de um item (número). Se houver outra ocorrência, os index não batem
+    const repeatedOptions = optionsVotedIDs.filter((item, index) => optionsVotedIDs.indexOf(item) != index); // Conjunto para as opções repetidas
+
+    if (repeatedOptions.length != 0) {
+      throw new ForbiddenException(`Opções com ID: ${repeatedOptions} foram votadas mais de uma vez`);
+    }
+  }
+
   // Checa se as opções votadas estão no Banco
   async checkOptions(
     optionsVoted: CreateOpcaoVotadaDto[],
@@ -185,11 +197,13 @@ export class ParticipacaoService {
       const optionsVoted = voto.opcoesVotadas; // Pegando opções votadas
 
       return await this.prismaService.$transaction(async (prisma) => {
-        // Checa se as opções votadas estão no Banco
-        //await this.checkOptions(optionsVoted, prisma);
-
         // Checar se o usuário já votou na pesquisa
         await this.checkUser(idUser, idSurvey, prisma);
+
+        // Checa se as opções votadas estão no Banco
+        await this.checkOptions(optionsVoted, prisma);
+
+        await this.checkDuplicatedOptions(optionsVoted);
         // // Criacao da participação
         // await this.createParticipation(idUser, idSurvey, prisma);
 
