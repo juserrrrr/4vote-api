@@ -1,4 +1,11 @@
-import { HttpException, HttpStatus, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import {
+  ForbiddenException,
+  HttpException,
+  HttpStatus,
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateParticipacaoDto } from './dto/create-participacao.dto';
 import { PrismaService } from '../prisma/prisma.service';
 import { Prisma, PrismaClient } from '@prisma/client';
@@ -21,10 +28,17 @@ export class ParticipacaoService {
   ) {
     const query = await prisma.participacao.findUnique({
       where: {
-        usuario_id: idUser,
-        pesquisa_id: idSurvey,
+        participation: {
+          usuario_id: idUser,
+          pesquisa_id: idSurvey,
+        },
       },
     });
+
+    console.log(query);
+    if (query) {
+      throw new ForbiddenException(`Usuário de ID ${idUser} já participou da pesquisa de id ${idSurvey}`);
+    }
   }
   // Checa se as opções votadas estão no Banco
   async checkOptions(
@@ -172,10 +186,10 @@ export class ParticipacaoService {
 
       return await this.prismaService.$transaction(async (prisma) => {
         // Checa se as opções votadas estão no Banco
-        await this.checkOptions(optionsVoted, prisma);
+        //await this.checkOptions(optionsVoted, prisma);
 
-        //
-
+        // Checar se o usuário já votou na pesquisa
+        await this.checkUser(idUser, idSurvey, prisma);
         // // Criacao da participação
         // await this.createParticipation(idUser, idSurvey, prisma);
 

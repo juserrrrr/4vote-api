@@ -35,7 +35,7 @@ model Participacao {
   Pesquisa    Pesquisa @relation(fields: [pesquisa_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "Participacao_Pesquisa")
   Usuario     Usuario  @relation(fields: [usuario_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "Usuario_Participacao")
 
-  @@unique([usuario_id, pesquisa_id]) 
+  @@unique(name: "participation", fields: [usuario_id, pesquisa_id]) 
   @@index([pesquisa_id], map: "Participacao_Pesquisa")
   @@index([usuario_id], map: "Usuario_Participacao")
 }
