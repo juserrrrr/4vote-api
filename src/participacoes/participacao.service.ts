@@ -109,7 +109,7 @@ export class ParticipacaoService {
     const optionsNaoDaPesquisa = optionsVotedIDs.filter((id) => !optionsSurveyIDs.includes(id));
 
     if (!allOptionsInSurvey) {
-      throw new NotFoundException(`As opções ${optionsNaoDaPesquisa} não estão na pesquisa de id ${idSurvey}`);
+      throw new ForbiddenException(`As opções ${optionsNaoDaPesquisa} não estão na pesquisa de id ${idSurvey}`);
     }
   }
 
@@ -306,7 +306,7 @@ export class ParticipacaoService {
         // Criação das Opções Votadas
         await this.createOptionsVoted(optionsVoted, idVote, prisma);
 
-        return 'hash';
+        return hash;
       });
     } catch (error) {
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
