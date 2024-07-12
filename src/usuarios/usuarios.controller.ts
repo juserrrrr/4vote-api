@@ -22,6 +22,6 @@ export class UsuariosController {
   @Get('check-email')
   async checkEmail(@Query('email') email: string) {
     const user = await this.usuariosService.findByEmail(email);
-    return user ? { exists: true } : { exists: false };
+    return user ? user : null;
   }
 }
