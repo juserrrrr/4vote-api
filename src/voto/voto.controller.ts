@@ -6,7 +6,7 @@ export class VotoController {
   constructor(private readonly votoService: VotoService) {}
 
   @Get(':id')
-  findOne(@Param('id') id: number) {
-    return this.votoService.findOne(+id);
+  async findOne(@Param('id') id: number) {
+    return await this.votoService.findOne(id);
   }
 }
