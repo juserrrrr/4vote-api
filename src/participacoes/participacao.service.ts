@@ -1,11 +1,4 @@
-import {
-  ForbiddenException,
-  HttpException,
-  HttpStatus,
-  Injectable,
-  InternalServerErrorException,
-  NotFoundException,
-} from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable, InternalServerErrorException } from '@nestjs/common';
 import { CreateParticipacaoDto } from './dto/create-participacao.dto';
 import { PrismaService } from '../prisma/prisma.service';
 import { Prisma, PrismaClient } from '@prisma/client';
@@ -35,7 +28,10 @@ export class ParticipacaoService {
       },
     });
     if (query) {
-      throw new ForbiddenException(`Usuário de ID ${idUser} já participou da pesquisa de id ${idSurvey}`);
+      throw new HttpException(
+        `Usuário de ID ${idUser} já participou da pesquisa de id ${idSurvey}`,
+        HttpStatus.FORBIDDEN,
+      );
     }
   }
 
@@ -48,7 +44,7 @@ export class ParticipacaoService {
     const repeatedOptions = optionsVotedIDs.filter((item, index) => optionsVotedIDs.indexOf(item) != index); // Conjunto para as opções repetidas
 
     if (repeatedOptions.length != 0) {
-      throw new ForbiddenException(`Opções com ID: ${repeatedOptions} foram votadas mais de uma vez`);
+      throw new HttpException(`Opções com ID: ${repeatedOptions} foram votadas mais de uma vez`, HttpStatus.FORBIDDEN);
     }
   }
 
@@ -76,7 +72,7 @@ export class ParticipacaoService {
 
     // Se houver opções inválidas (não há estas opções no Banco, será lançada uma exceção)
     if (invalidOptions.length > 0) {
-      throw new NotFoundException(`Opções inválidas: ${invalidOptions.join(', ')}`);
+      throw new HttpException(`Opções inválidas: ${invalidOptions.join(', ')}`, HttpStatus.NOT_FOUND);
     }
   }
 
@@ -109,7 +105,10 @@ export class ParticipacaoService {
     const optionsNaoDaPesquisa = optionsVotedIDs.filter((id) => !optionsSurveyIDs.includes(id));
 
     if (!allOptionsInSurvey) {
-      throw new ForbiddenException(`As opções ${optionsNaoDaPesquisa} não estão na pesquisa de id ${idSurvey}`);
+      throw new HttpException(
+        `As opções ${optionsNaoDaPesquisa} não estão na pesquisa de id ${idSurvey}`,
+        HttpStatus.FORBIDDEN,
+      );
     }
   }
 
@@ -157,8 +156,9 @@ export class ParticipacaoService {
     );
 
     if (questionsWithoutOptionsVoted.length > 0) {
-      throw new ForbiddenException(
+      throw new HttpException(
         `As perguntas de id ${questionsWithoutOptionsVoted.map((question) => question.question)} não tiveram opções votadas`,
+        HttpStatus.FORBIDDEN,
       );
     }
   }
@@ -311,8 +311,6 @@ export class ParticipacaoService {
     } catch (error) {
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
         throw new HttpException(error.message, HttpStatus.CONFLICT);
-      } else if (error instanceof NotFoundException) {
-        throw new NotFoundException(error.message);
       } else throw new InternalServerErrorException(error);
     }
   }
