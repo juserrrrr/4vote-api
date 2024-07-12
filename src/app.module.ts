@@ -10,6 +10,8 @@ import { AuthModule } from './auth/auth.module';
 import { OpcaoModule } from './opcao/opcao.module';
 import { ParticipacoesModule } from './participacoes/participacoes.module';
 import { PerguntasModule } from './perguntas/perguntas.module';
+import { MailerModule } from './mailer/mailer.module';
+import { ConfigModule } from '@nestjs/config';
 import { OpcaoVotadaModule } from './opcaoVotada/opcaovotada.module';
 
 @Module({
@@ -24,6 +26,8 @@ import { OpcaoVotadaModule } from './opcaoVotada/opcaovotada.module';
     TagPesquisaModule,
     UsuariosModule,
     VotoModule,
+    ConfigModule.forRoot(),
+    MailerModule
   ],
   controllers: [AppController],
   providers: [AppService],

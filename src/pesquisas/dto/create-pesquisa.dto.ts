@@ -1,50 +1,59 @@
-import { CreatePerguntaDto } from 'src/perguntas/dto/create-pergunta.dto';
-import { CreateTagDto } from 'src/tag/dto/create-tag.dto';
-import { CreateTagPesquisaDto } from 'src/tagpesquisa/dto/create-tagpesquisa.dto';
-import { IsBoolean, IsDate, IsNotEmpty, IsNumber, IsString } from 'class-validator';
+import { Type } from 'class-transformer';
+import {
+  IsArray,
+  IsBoolean,
+  IsDateString,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  IsUrl,
+  Length,
+  ArrayMinSize,
+  ValidateNested,
+  ValidateIf,
+  ArrayMaxSize,
+} from 'class-validator';
+import { CreatePerguntaDto } from '../../perguntas/dto/create-pergunta.dto';
+import { CreateTagDto } from '../../tag/dto/create-tag.dto';
 
 export class CreatePesquisaDto {
-  @IsNotEmpty()
-  @IsString()
+  @IsNotEmpty({ message: 'O título é obrigatório.' })
+  @IsString({ message: 'O título deve ser uma string.' })
+  @Length(5, 100, { message: 'O título deve ter entre 5 e 100 caracteres.' })
   titulo: string;
 
-  @IsNotEmpty()
-  @IsString()
-  codigo: string;
+  @IsString({ message: 'A descrição deve ser uma string.' })
+  @IsOptional()
+  descricao?: string;
 
-  @IsNotEmpty()
-  @IsDate()
-  dataCriacao: Date;
+  @IsNotEmpty({ message: 'A data de término é obrigatória.' })
+  @IsDateString({}, { message: 'A data de término deve ser uma data válida.' })
+  dataTermino: string;
 
-  @IsNotEmpty()
-  @IsDate()
-  dataTermino: Date;
-
-  @IsNotEmpty()
-  @IsBoolean()
+  @IsNotEmpty({ message: 'É necessário definir se é público ou não.' })
+  @IsBoolean({ message: 'EhPublico deve ser um valor booleano.' })
   ehPublico: boolean;
 
-  @IsString()
-  descricao: string;
+  @IsString({ message: 'A URL da imagem deve ser uma string.' })
+  @IsOptional()
+  @IsUrl({}, { message: 'A URL da imagem deve ser uma URL válida.' })
+  URLimagem?: string;
 
-  @IsNotEmpty()
-  @IsNumber()
-  criador: number;
-
-  @IsNotEmpty()
-  @IsBoolean()
-  arquivado: boolean;
-
-  @IsString()
-  URLimagem: string;
-
-  @IsNotEmpty()
-  @IsBoolean()
+  @IsNotEmpty({ message: 'É necessário definir se é uma votação ou não.' })
+  @IsBoolean({ message: 'EhVotacao deve ser um valor booleano.' })
   ehVotacao: boolean;
 
+  @IsArray({ message: 'Perguntas deve ser um array.' })
+  @ArrayMinSize(1, { message: 'Deve haver pelo menos uma pergunta.' })
+  @ValidateNested({ each: true, message: 'Cada pergunta deve ser válida.' })
+  @Type(() => CreatePerguntaDto)
+  @ValidateIf((obj) => obj.ehVotacao === true, { message: 'Validação condicional falhou.' })
+  @ArrayMaxSize(1, { message: 'Deve haver no máximo uma pergunta para votações.' })
   perguntas: CreatePerguntaDto[];
 
-  tags: CreateTagDto[];
-
-  tagsPesquisa: CreateTagPesquisaDto[];
+  @IsArray({ message: 'Tags deve ser um array.' })
+  @IsOptional({ message: 'Tags é opcional.' })
+  @ValidateNested({ each: true, message: 'Cada tag deve ser válida.' })
+  @Type(() => CreateTagDto)
+  tags?: CreateTagDto[];
 }
