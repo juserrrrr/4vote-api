@@ -1,4 +1,4 @@
-import { Controller, Get, Body, Patch, UseGuards, Headers } from '@nestjs/common';
+import { Controller, Get, Body, Patch, UseGuards, Headers, Query } from '@nestjs/common';
 import { UsuariosService } from './usuarios.service';
 import { UpdateUsuarioDto } from './dto/update-usuario.dto';
 import { AuthGuard } from '../auth/auth.guard';
@@ -16,5 +16,11 @@ export class UsuariosController {
   @Patch('me')
   update(@Headers() headers, @Body() updateUsuarioDto: UpdateUsuarioDto) {
     return this.usuariosService.update(headers, updateUsuarioDto);
+  }
+
+  @Get('check-email')
+  async checkEmail(@Query('email') email: string) {
+    const user = await this.usuariosService.findByEmail(email);
+    return user ? { exists: true } : { exists: false };
   }
 }
