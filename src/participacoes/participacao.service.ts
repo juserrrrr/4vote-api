@@ -80,6 +80,89 @@ export class ParticipacaoService {
     }
   }
 
+  // Checar se as opções pertencem a pesquisa
+  async checkSurvey(
+    idSurvey: number,
+    optionsVoted: CreateOpcaoVotadaDto[],
+    prisma: Omit<
+      PrismaClient<Prisma.PrismaClientOptions, never, DefaultArgs>,
+      '$connect' | '$disconnect' | '$on' | '$transaction' | '$use' | '$extends'
+    >,
+  ) {
+    // Pegas os ids das opções daquela pesquisa
+    const optionsSurvey: { id: number }[] = await prisma.$queryRaw`
+      SELECT O.id
+      FROM Opcao O
+      JOIN Pergunta P ON O.pergunta_id = P.id
+      JOIN Pesquisa PQ ON P.pesquisa_id = PQ.id
+      WHERE PQ.id = ${idSurvey}; 
+    `;
+
+    // Coletando os ids da pesquisa consultada e os ids das opções votadas
+    const optionsSurveyIDs = optionsSurvey.map((option) => option.id);
+    const optionsVotedIDs = optionsVoted.map((option: CreateOpcaoVotadaDto) => option.idOption);
+
+    // True se todas as opções votadas estão na pesquisa, False caso contrário
+    const allOptionsInSurvey = optionsVotedIDs.every((item) => optionsSurveyIDs.includes(item));
+
+    // Encontrar as opções votadas que não pertencem à pesquisa
+    const optionsNaoDaPesquisa = optionsVotedIDs.filter((id) => !optionsSurveyIDs.includes(id));
+
+    if (!allOptionsInSurvey) {
+      throw new NotFoundException(`As opções ${optionsNaoDaPesquisa} não estão na pesquisa de id ${idSurvey}`);
+    }
+  }
+
+  // Checar se todas perguntas teve pelo menos uma opção votada
+  async checkOptionsPerQuestion(
+    idSurvey: number,
+    optionsVoted: CreateOpcaoVotadaDto[],
+    prisma: Omit<
+      PrismaClient<Prisma.PrismaClientOptions, never, DefaultArgs>,
+      '$connect' | '$disconnect' | '$on' | '$transaction' | '$use' | '$extends'
+    >,
+  ) {
+    const OptionsFromQuestions: { optionId: number; questionId: number }[] = await prisma.$queryRaw`
+      SELECT O.id optionId, P.id questionId
+      FROM Opcao O
+      JOIN Pergunta P ON O.pergunta_id = P.id
+      JOIN Pesquisa PQ ON P.pesquisa_id = PQ.id
+      WHERE PQ.id = ${idSurvey};
+    `;
+
+    //// Coletando os ids das opções votadas
+    const optionsVotedIDs = optionsVoted.map((option: CreateOpcaoVotadaDto) => option.idOption);
+
+    // Formato do grupo: {pesquisa: id, options[]}
+    const group: { [key: number]: number[] } = {};
+
+    // Geração de uma lista de objetos para agrupar as opções de cada pergunta da pesquisa
+    OptionsFromQuestions.forEach((option) => {
+      const { questionId, optionId } = option;
+      if (!group[questionId]) {
+        group[questionId] = [];
+      }
+      group[questionId].push(optionId);
+    });
+
+    // Convertendo o agrupamento para o formato desejado {pesquisa: id, options[]}
+    const questions = Object.keys(group).map((questionId) => ({
+      question: questionId,
+      options: group[questionId],
+    }));
+
+    // Filtrar perguntas sem opções votadas
+    const questionsWithoutOptionsVoted = questions.filter(
+      (question) => !question.options.some((option) => optionsVotedIDs.includes(option)),
+    );
+
+    if (questionsWithoutOptionsVoted.length > 0) {
+      throw new ForbiddenException(
+        `As perguntas de id ${questionsWithoutOptionsVoted.map((question) => question.question)} não tiveram opções votadas`,
+      );
+    }
+  }
+
   // Método para criação do opções votadas
   async createOptionsVoted(
     optionsVoted: CreateOpcaoVotadaDto[],
@@ -89,7 +172,7 @@ export class ParticipacaoService {
       '$connect' | '$disconnect' | '$on' | '$transaction' | '$use' | '$extends'
     >,
   ) {
-    // Transforma os dados das opções votadas em uma lista de dicionários do tipo {idVote, idOpcao} usando map
+    // Transforma os dados das opções votadas em uma lista de dicionários do tipo {idVote, idOption} usando map
     const optionsVotedMap = optionsVoted.map((optionVoted) => ({
       voto_id: idVote,
       opcao_id: optionVoted.idOption,
@@ -120,18 +203,16 @@ export class ParticipacaoService {
       ORDER BY V.data DESC
       LIMIT 1;
     `;
-    console.log(`hash achada: ${hash.length}`);
 
     // Se for o primeiro voto daquela pesquisa, cria um Sal e o retorna
     if (hash.length == 0) {
       // Gerando o salt (32 bytes = 256 bits)
       const salt = crypto.randomBytes(32).toString('hex');
-      console.log(`Salt gerado: ${salt}`);
       return salt;
     }
 
     const hashValue = hash[0].hash;
-    // Retorna
+    // Retorna a hash
     return hashValue;
   }
 
@@ -145,8 +226,6 @@ export class ParticipacaoService {
       date,
       optionsVotedIDs,
     };
-
-    console.log(`Dados para gerar hash: ${JSON.stringify(dataVote)}`);
 
     return crypto.createHash('sha256').update(JSON.stringify(dataVote)).digest('hex');
   }
@@ -203,22 +282,30 @@ export class ParticipacaoService {
         // Checa se as opções votadas estão no Banco
         await this.checkOptions(optionsVoted, prisma);
 
+        // Checar por opções votadas repetidas
         await this.checkDuplicatedOptions(optionsVoted);
-        // // Criacao da participação
-        // await this.createParticipation(idUser, idSurvey, prisma);
 
-        // // Geracao da hash
-        // const previousHash = await this.getPreviousHash(idSurvey, prisma);
-        // console.log(`Hash anterior: ${previousHash}`);
+        // Checar se as opções pertencem a pergunta
+        await this.checkSurvey(idSurvey, optionsVoted, prisma);
 
-        // const now = new Date(); // Pega a data e hora atual
-        // const hash = await this.generateHash(previousHash, optionsVoted, now); // Gera Hash
+        // Checar se todas as perguntas tiverem opções votadas
+        await this.checkOptionsPerQuestion(idSurvey, optionsVoted, prisma);
 
-        // // Criação do voto passando a hash
-        // const idVote = await this.createVote(hash, now, prisma);
+        // Criacao da participação
+        await this.createParticipation(idUser, idSurvey, prisma);
 
-        // // // Criação das Opções Votadas
-        // await this.createOptionsVoted(optionsVoted, idVote, prisma);
+        // Geracao da hash
+        const previousHash = await this.getPreviousHash(idSurvey, prisma);
+
+        const now = new Date(); // Pega a data e hora atual
+        const hash = await this.generateHash(previousHash, optionsVoted, now); // Gera Hash
+
+        // Criação do voto passando a hash
+        const idVote = await this.createVote(hash, now, prisma);
+
+        // Criação das Opções Votadas
+        await this.createOptionsVoted(optionsVoted, idVote, prisma);
+
         return 'hash';
       });
     } catch (error) {
