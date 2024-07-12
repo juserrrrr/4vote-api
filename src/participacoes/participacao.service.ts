@@ -10,6 +10,41 @@ import * as crypto from 'crypto';
 export class ParticipacaoService {
   constructor(private readonly prismaService: PrismaService) {}
 
+  // Checar se a pesquisa já foi encerrada
+  async checkSurvey(
+    idSurvey,
+    date: Date,
+    prisma: Omit<
+      PrismaClient<Prisma.PrismaClientOptions, never, DefaultArgs>,
+      '$connect' | '$disconnect' | '$on' | '$transaction' | '$use' | '$extends'
+    >,
+  ) {
+    // Retorna só a data de término da pesquisa
+    const survey = await prisma.pesquisa.findUnique({
+      where: { id: idSurvey },
+      select: { dataTermino: true },
+    });
+
+    // Confere se a pesquisa existe
+    if (!survey) {
+      throw new HttpException(`Pesquisa de ID ${idSurvey} não encontrada`, HttpStatus.NOT_FOUND);
+    }
+
+    const endDate = survey.dataTermino;
+    // Ajustando a data término para a resposta de erro
+    const year = endDate.getFullYear();
+    const month = String(endDate.getMonth() + 1).padStart(2, '0'); // meses começam do zero
+    const day = String(endDate.getDate()).padStart(2, '0');
+    const hours = String(endDate.getHours()).padStart(2, '0');
+    const minutes = String(endDate.getMinutes()).padStart(2, '0');
+    const seconds = String(endDate.getSeconds()).padStart(2, '0');
+    const endDateFormated = `${hours}:${minutes}:${seconds} da data ${day}/${month}/${year}`;
+
+    if (endDate <= date) {
+      throw new HttpException(`Pesquisa de ID ${idSurvey} já finalizada às ${endDateFormated}`, HttpStatus.FORBIDDEN);
+    }
+  }
+
   // Checa se o usuário já votou naquela pesquisa
   async checkUser(
     idUser: number,
@@ -77,7 +112,7 @@ export class ParticipacaoService {
   }
 
   // Checar se as opções pertencem a pesquisa
-  async checkSurvey(
+  async checkOptionsSurvey(
     idSurvey: number,
     optionsVoted: CreateOpcaoVotadaDto[],
     prisma: Omit<
@@ -274,8 +309,12 @@ export class ParticipacaoService {
     try {
       const { voto } = createParticipacaoDto;
       const optionsVoted = voto.opcoesVotadas; // Pegando opções votadas
+      const now = new Date(); // Pega a data e hora atual
 
       return await this.prismaService.$transaction(async (prisma) => {
+        // Checar se a pesquisa existe e se já foi encerrada
+        await this.checkSurvey(idSurvey, now, prisma);
+
         // Checar se o usuário já votou na pesquisa
         await this.checkUser(idUser, idSurvey, prisma);
 
@@ -286,7 +325,7 @@ export class ParticipacaoService {
         await this.checkDuplicatedOptions(optionsVoted);
 
         // Checar se as opções pertencem a pergunta
-        await this.checkSurvey(idSurvey, optionsVoted, prisma);
+        await this.checkOptionsSurvey(idSurvey, optionsVoted, prisma);
 
         // Checar se todas as perguntas tiverem opções votadas
         await this.checkOptionsPerQuestion(idSurvey, optionsVoted, prisma);
@@ -296,8 +335,6 @@ export class ParticipacaoService {
 
         // Geracao da hash
         const previousHash = await this.getPreviousHash(idSurvey, prisma);
-
-        const now = new Date(); // Pega a data e hora atual
         const hash = await this.generateHash(previousHash, optionsVoted, now); // Gera Hash
 
         // Criação do voto passando a hash
