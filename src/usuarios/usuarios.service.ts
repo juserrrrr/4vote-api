@@ -56,4 +56,20 @@ export class UsuariosService {
 
     return updateUsuario;
   }
+
+  async findByEmail(email: string) {
+    let usuario = null;
+
+    try {
+      usuario = await this.prisma.$queryRaw`
+      SELECT id, nome, email, senha
+      FROM Usuario
+      WHERE email=${email}
+    `;
+    } catch (e) {
+      console.log(e);
+    }
+
+    return usuario;
+  }
 }
