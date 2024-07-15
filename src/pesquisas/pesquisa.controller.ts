@@ -16,18 +16,19 @@ export class PesquisaController {
     @Req() req: any,
   ) {
     const idUser = req.user.sub;
+    console.log('hihi');
     return this.pesquisaService.create(createPesquisaDto, idUser);
   }
 
-  @Get(':code')
-  findAll(@Param('code') code: string) {
-    return this.pesquisaService.findByCode(code);
-  }
-
-  @Get('filtro')
-  filter(@Query() query: filterPesquisaDto, @Req() req: any) {
+  @Get('filtrar')
+  filterSurvey(@Query() query: filterPesquisaDto, @Req() req: any) {
     const idUser = req.user.sub;
+    console.log(idUser);
     return this.pesquisaService.filterSurveys(query, idUser);
+  }
+  @Get('procurar/:code')
+  findCode(@Param('code') code: string) {
+    return this.pesquisaService.findByCode(code);
   }
 
   @Patch('arquivar/:id')
