@@ -348,11 +348,9 @@ export class ParticipacaoService {
     } catch (error) {
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
         throw new HttpException(error.message, HttpStatus.CONFLICT);
-      } else if (error instanceof InternalServerErrorException) {
-        throw new InternalServerErrorException('Erro interno ao criar uma participação');
-      } else {
+      } else if (error instanceof ForbiddenException || error instanceof NotFoundException) {
         throw error;
-      }
+      } else throw new InternalServerErrorException('Erro interno ao criar uma participação');
     }
   }
 
