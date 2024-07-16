@@ -24,15 +24,14 @@ export class PesquisaController {
     return this.pesquisaService.findAllCodes();
   }
 
-  @Get(':code')
-  findByCode(@Param('code') code: string) {
-    return this.pesquisaService.findByCode(code);
-  }
-
-  @Get('filtro')
-  filter(@Query() query: filterPesquisaDto, @Req() req: any) {
+  @Get('filtrar')
+  filterSurvey(@Query() query: filterPesquisaDto, @Req() req: any) {
     const idUser = req.user.sub;
     return this.pesquisaService.filterSurveys(query, idUser);
+  }
+  @Get('procurar/:code')
+  findCode(@Param('code') code: string) {
+    return this.pesquisaService.findByCode(code);
   }
 
   @Patch('arquivar/:id')

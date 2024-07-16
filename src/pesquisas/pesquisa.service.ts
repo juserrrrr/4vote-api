@@ -288,7 +288,7 @@ export class PesquisaService {
   ) {
     // Inicializa a query SQL para buscar as pesquisas padrão
     let querySql = Prisma.sql`
-      SELECT p.codigo, p.titulo, p.descricao, p.dataTermino, p.URLimagem
+      SELECT p.codigo, p.titulo, p.descricao, p.dataTermino, p.URLimagem, p.ehVotacao
       FROM Pesquisa p
       `;
     // Verifica se o filtro de participação está ativo
