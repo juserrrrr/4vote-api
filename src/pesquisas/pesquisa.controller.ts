@@ -19,8 +19,13 @@ export class PesquisaController {
     return this.pesquisaService.create(createPesquisaDto, idUser);
   }
 
+  @Get('codigos')
+  findAllCodes() {
+    return this.pesquisaService.findAllCodes();
+  }
+
   @Get(':code')
-  findAll(@Param('code') code: string) {
+  findByCode(@Param('code') code: string) {
     return this.pesquisaService.findByCode(code);
   }
 
