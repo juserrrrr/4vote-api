@@ -1,8 +1,14 @@
-import { ConflictException, Injectable } from '@nestjs/common';
+import { ConflictException, HttpException, HttpStatus, Injectable, InternalServerErrorException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { UpdateUsuarioDto } from './dto/update-usuario.dto';
 import { CreateUsuarioDto } from './dto/create-usuario.dto';
-import { jwtDecode } from 'jwt-decode';
+import { Prisma } from '@prisma/client';
+
+export interface IFindMe {
+  nome: string;
+  email: string;
+  cpf: string;
+}
 
 @Injectable()
 export class UsuariosService {
@@ -19,42 +25,38 @@ export class UsuariosService {
   }
 
   // Acha o usuario atual com base no token que está nos headers
-  async findMe(header: Headers) {
-    const token = header['authorization'].split(' ')[1];
-    const decodedJwt = jwtDecode(token);
-    const id = decodedJwt['id'];
-    let usuario = null;
-
+  async findMe(userId: number) {
     try {
-      usuario = await this.prisma.$queryRaw`
+      const user = await this.prisma.$queryRaw<IFindMe[]>`
       SELECT nome, email, cpf
       FROM Usuario
-      WHERE id=${id}
+      WHERE id=${userId}
     `;
-    } catch (e) {
-      console.log(e);
+      if (user.length === 0) {
+        throw new HttpException('Usuário não encontrado', HttpStatus.NOT_FOUND);
+      }
+      return user[0];
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        throw new HttpException(error.message, HttpStatus.CONFLICT);
+      } else throw new InternalServerErrorException('Erro interno ao criar uma pesquisa');
     }
-
-    return usuario;
   }
 
-  async update(header: Headers, updateUsuarioDto: UpdateUsuarioDto) {
-    const token = header['authorization'].split(' ')[1];
-    const decodedJwt = jwtDecode(token);
-    const id = decodedJwt['id'];
-    let updateUsuario = null;
-
+  async update(userId: number, updateUsuarioDto: UpdateUsuarioDto) {
+    const setValuesSql = Object.entries(updateUsuarioDto).map(([key, value]) => {
+      return Prisma.sql`${Prisma.raw(key)}=${value}`;
+    });
+    const sqlQuery = Prisma.sql`UPDATE Usuario SET ${Prisma.join(setValuesSql, `, `)} WHERE id=${userId}`;
     try {
-      updateUsuario = await this.prisma.$executeRaw`
-    UPDATE Usuario
-    SET nome=${updateUsuarioDto.nome}, email=${updateUsuarioDto.email}
-    WHERE id=${id}
-    `;
+      const updatedUsuario = await this.prisma.$executeRaw<1 | 0>(sqlQuery);
+      if (updatedUsuario === 0) {
+        throw new HttpException('Usuário não encontrado', HttpStatus.NOT_FOUND);
+      }
+      return updateUsuarioDto;
     } catch (e) {
       throw new ConflictException('Email já existe');
     }
-
-    return updateUsuario;
   }
 
   async findByEmail(email: string) {
