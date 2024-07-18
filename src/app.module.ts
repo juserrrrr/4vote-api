@@ -27,7 +27,7 @@ import { OpcaoVotadaModule } from './opcaoVotada/opcaovotada.module';
     UsuariosModule,
     VotoModule,
     ConfigModule.forRoot(),
-    MailerModule
+    MailerModule,
   ],
   controllers: [AppController],
   providers: [AppService],
