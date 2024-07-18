@@ -22,7 +22,8 @@ export class PesquisaController {
   @Get('filtrar')
   filterSurvey(@Query() query: filterPesquisaDto, @Req() req: any) {
     const idUser = req.user.sub;
-    return this.pesquisaService.filterSurveys(query, idUser);
+
+    return this.pesquisaService.filterSurveys(query, idUser); // Executa a função
   }
   @Get('procurar/:code')
   findCode(@Param('code') code: string) {
