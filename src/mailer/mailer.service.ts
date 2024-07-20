@@ -24,10 +24,13 @@ export class MailerService {
   }
 
   // Método para substituir placeholders no HTML do email por valores específicos
-  template(html: string, replacements: Record<string, string>) {
-    return html.replace(/%(.*?)%/g, (m, key) => {
-      return replacements.hasOwnProperty(key) ? replacements[key] : '';
-    });
+  template(template: string, replacements: { [key: string]: string }): string {
+    let result = template;
+    for (const key in replacements) {
+      const regex = new RegExp(`{{${key}}}`, 'g');
+      result = result.replace(regex, replacements[key]);
+    }
+    return result;
   }
 
   // Método para carregar o template HTML do email
