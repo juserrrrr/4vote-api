@@ -43,6 +43,11 @@ export class AuthService {
       throw new UnauthorizedException('Credenciais inválidas');
     }
 
+    // Verificar se o usuário está validado
+    if (!usuario.validado) {
+      throw new UnauthorizedException('Conta não validada. Por favor, valide sua conta.');
+    }
+
     const payload = { id: usuario.id, nome: usuario.nome };
     return this.criarToken(payload);
   }
