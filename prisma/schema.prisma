@@ -92,6 +92,7 @@ model Usuario {
   email        String         @unique(map: "Usuario_ak_email") @db.VarChar(255)
   cpf          String         @unique(map: "Usuario_ak_cpf") @db.VarChar(14)
   senha        String         @db.VarChar(255)
+  validado  Boolean @default(false)
   URLimagem    String?        @db.VarChar(255)
   Participacao Participacao[]
   Pesquisa     Pesquisa[]
