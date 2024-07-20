@@ -96,6 +96,7 @@ model Usuario {
   URLimagem    String?        @db.VarChar(255)
   Participacao Participacao[]
   Pesquisa     Pesquisa[]
+  CodigoValidacao CodigoValidacao[]
 }
 
 model Voto {
