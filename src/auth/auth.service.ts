@@ -96,4 +96,26 @@ export class AuthService {
     // Retorna uma mensagem de sucesso
     return { message: 'Nova senha enviada para o email' };
   }
+
+  // Função de validação de conta
+  async validarUsuario(usuarioId: number, codigo: string) {
+    const validacao = await this.prisma.codigoValidacao.findFirst({
+      where: { usuarioId, codigo },
+    });
+
+    if (!validacao) {
+      throw new UnauthorizedException('Código de validação inválido');
+    }
+
+    await this.prisma.usuario.update({
+      where: { id: usuarioId },
+      data: { validado: true },
+    });
+
+    await this.prisma.codigoValidacao.delete({
+      where: { id: validacao.id },
+    });
+
+    return { message: 'Conta validada com sucesso' };
+  }
 }
