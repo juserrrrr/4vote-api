@@ -46,11 +46,43 @@ export class AuthService {
   async cadastro(cadastroDto: AuthCadastroDto) {
     const salt = await genSalt();
     cadastroDto.senha = await hash(cadastroDto.senha, salt);
-    const usuario = await this.usuarioService.create(cadastroDto);
+    const usuario = await this.usuariosService.create({
+      ...cadastroDto,
+      validado: false, // Definido como não validado inicialmente
+    });
     if (!usuario) {
       throw new UnauthorizedException('Erro ao cadastrar usuário');
     }
+
+    // Gera um código de validação
+    const codigoValidacao = Math.random().toString(36).substr(2, 8);
+    await this.prisma.codigoValidacao.create({
+      data: {
+        usuarioId: usuario.id,
+        codigo: codigoValidacao,
+      },
+    });
+
     const payload = { id: usuario.id, nome: usuario.nome };
+
+    // Gerar o link de validação para o front-end usando a variável de ambiente
+    const linkValidacao = `${this.frontendBaseUrl}/validar-usuario?usuarioId=${usuario.id}&codigo=${codigoValidacao}`;
+
+    // Envia o e-mail com o link de validação
+    const template = this.mailerService.loadTemplate('codigo-validacao');
+    const replacements = {
+      nome: usuario.nome,
+      linkValidacao,
+    };
+
+    const emailHtml = this.mailerService.template(template, replacements);
+
+    await this.mailerService.sendEmail({
+      recipients: [{ name: usuario.nome, address: usuario.email }],
+      subject: 'Validação de Conta',
+      html: emailHtml,
+    });
+
     return this.criarToken(payload);
   }
 
