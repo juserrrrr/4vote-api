@@ -16,4 +16,15 @@ export class AuthController {
   async cadastro(@Body() cadastroDto: AuthCadastroDto) {
     return this.authService.cadastro(cadastroDto);
   }
+
+  @Post('recuperar-senha')
+  async recuperarSenha(@Body('email') email: string) {
+    return this.authService.recuperarSenha(email);
+  }
+
+  @Post('validar-usuario')
+  async validarUsuario(@Body() body: { usuarioId: number; codigo: string }) {
+    const { usuarioId, codigo } = body;
+    return this.authService.validarUsuario(usuarioId, codigo);
+  }
 }

@@ -1,12 +1,3 @@
--- Excluir o banco de dados existente
-DROP DATABASE IF EXISTS nome_do_banco;
-
--- Criar um novo banco de dados
-CREATE DATABASE nome_do_banco;
-
--- Selecionar o banco de dados para uso
-USE nome_do_banco;
-
 -- CreateTable
 CREATE TABLE `Opcao` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
@@ -93,6 +84,7 @@ CREATE TABLE `Usuario` (
     `email` VARCHAR(255) NOT NULL,
     `cpf` VARCHAR(14) NOT NULL,
     `senha` VARCHAR(255) NOT NULL,
+    `validado` BOOLEAN NOT NULL DEFAULT false,
     `URLimagem` VARCHAR(255) NULL,
 
     UNIQUE INDEX `Usuario_ak_email`(`email`),

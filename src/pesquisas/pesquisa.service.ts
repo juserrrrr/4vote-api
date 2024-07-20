@@ -19,6 +19,16 @@ interface SurveyQueryResult {
   Pergunta: string;
   Opcao: string;
 }
+
+interface SurveyFilterResult {
+  codigo: string;
+  titulo: string;
+  descricao: string;
+  dataTermino: Date;
+  URLimagem: string;
+  ehVotacao: boolean;
+  tagNome: string[];
+}
 @Injectable()
 export class PesquisaService {
   constructor(private readonly prismaService: PrismaService) {}
@@ -222,6 +232,19 @@ export class PesquisaService {
     }
   }
 
+  async findAllCodes() {
+    try {
+      const allCodes = await this.prismaService.$queryRaw`
+        SELECT Pesquisa.codigo
+        FROM Pesquisa;
+      `;
+
+      return allCodes;
+    } catch (error) {
+      throw new InternalServerErrorException('Erro interno ao buscar as pesquisas');
+    }
+  }
+
   async findByCode(code: string) {
     try {
       //Puxar as informações de perguntas e opções
@@ -267,16 +290,41 @@ export class PesquisaService {
       throw new InternalServerErrorException('Erro interno ao buscar as pesquisas');
     }
   }
-  //Criar um filtro para mostrar as pesquisas arquivadas pelo proprio usuario que criou, as que ele participou e as encerradas
-  //Os valores vão ser passador por query params
+
+  private async groupTagBySurvey(surveys: SurveyFilterResult[]) {
+    const surveysGrouped = surveys.reduce((acc, survey) => {
+      // Verifica se a pesquisa já foi adicionada
+      const surveyIndex = acc.findIndex((item) => item.codigo === survey.codigo);
+      // Caso a pesquisa não tenha sido adicionada ainda ela é adicionada
+      if (surveyIndex === -1) {
+        acc.push({
+          codigo: survey.codigo,
+          titulo: survey.titulo,
+          descricao: survey.descricao,
+          dataTermino: survey.dataTermino,
+          URLimagem: survey.URLimagem,
+          ehVotacao: survey.ehVotacao,
+          tags: survey.tagNome ? [survey.tagNome] : [],
+        });
+        // Caso a pesquisa já tenha sido adicionada, é adicionada a tag
+      } else {
+        acc[surveyIndex].tags.push(survey.tagNome);
+      }
+      return acc;
+    }, []);
+    return surveysGrouped;
+  }
+
   async filterSurveys(
     { arquivada = false, criador = false, encerradas = false, participo = false }: filterPesquisaDto,
     idUser: number,
   ) {
     // Inicializa a query SQL para buscar as pesquisas padrão
     let querySql = Prisma.sql`
-      SELECT p.codigo, p.titulo, p.descricao, p.dataTermino, p.URLimagem
+      SELECT p.codigo, p.titulo, p.descricao, p.dataTermino, p.URLimagem, p.ehVotacao, t.nome AS tagNome
       FROM Pesquisa p
+      LEFT JOIN Tag_Pesquisa tp ON p.id = tp.pesquisa_id
+      LEFT JOIN Tag t ON tp.tag_id = t.id
       `;
     // Verifica se o filtro de participação está ativo
     if (participo) {
@@ -306,8 +354,9 @@ export class PesquisaService {
     }
 
     try {
-      const surveys = await this.prismaService.$queryRaw(querySql);
-      return surveys;
+      const surveys = await this.prismaService.$queryRaw<SurveyFilterResult[]>(querySql);
+      const surveysGrouped = await this.groupTagBySurvey(surveys);
+      return surveysGrouped;
     } catch (error) {
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
         throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
