@@ -9,12 +9,16 @@ import { MailerService } from '../mailer/mailer.service';
 
 @Injectable()
 export class AuthService {
+  private readonly frontendBaseUrl: string;
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly jwtService: JwtService,
-    private readonly usuarioService: UsuariosService,
+    private readonly usuariosService: UsuariosService,
     private readonly mailerService: MailerService,
-  ) {}
+  ) {
+    this.frontendBaseUrl = process.env.FRONTEND_BASE_URL;
+  }
 
   criarToken({ id, nome }: { id: number; nome: string }) {
     const accessToken = this.jwtService.sign(
