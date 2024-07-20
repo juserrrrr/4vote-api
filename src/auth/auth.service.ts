@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException, NotFoundException } from '@nestjs/common';
+import { Injectable, UnauthorizedException, NotFoundException, BadRequestException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { compare, genSalt, hash } from 'bcrypt';
 import { AuthCadastroDto } from './dto/auth-cadastro.dto';
@@ -40,7 +40,7 @@ export class AuthService {
       where: { email: entrarDto.email },
     });
     if (!usuario || !(await compare(entrarDto.senha, usuario.senha))) {
-      throw new UnauthorizedException('Credenciais inválidas');
+      throw new BadRequestException('Credenciais inválidas');
     }
 
     // Verificar se o usuário está validado

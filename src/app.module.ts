@@ -29,7 +29,7 @@ import { UploadModule } from './modules/upload/upload.module';
     VotoModule,
     ConfigModule.forRoot(),
     MailerModule,
-    UploadModule
+    UploadModule,
   ],
   controllers: [AppController],
   providers: [AppService],
