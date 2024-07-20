@@ -103,3 +103,12 @@ model Voto {
   hash         String         @db.VarChar(255)
   Opcao_Votada Opcao_Votada[]
 }
+
+model CodigoValidacao {
+  id        Int      @id @default(autoincrement())
+  usuarioId Int
+  codigo    String
+  usuario   Usuario  @relation(fields: [usuarioId], references: [id])
+
+  @@index([usuarioId])
+}
