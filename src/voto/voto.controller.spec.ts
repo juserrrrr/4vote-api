@@ -41,21 +41,21 @@ describe('VotoController', () => {
   });
 
   describe('findOne', () => {
-    it('should return the correct voto for existing IDs', async () => {
-      // Act
+    it('Aqui deve retornar os votos', async () => {
+      // Act: Chama o método findOne do controller com IDs 1 e 2
       const result1 = await controller.findOne(1);
       const result2 = await controller.findOne(2);
 
-      // Assert
+      // Assert: Verifica se os resultados são iguais aos votos mockados
       expect(result1).toEqual(votos[1]);
       expect(result2).toEqual(votos[2]);
     });
 
-    it('should return null if the voto is not found', async () => {
-      // Act
+    it('Aqui deve retornar null', async () => {
+      // Act: Chama o método findOne do controller com um ID inexistente (99)
       const result = await controller.findOne(99);
 
-      // Assert
+      // Assert: Verifica se o resultado é null
       expect(result).toBeNull();
     });
   });
