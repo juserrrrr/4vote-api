@@ -11,6 +11,7 @@ import {
 import { CreateOpcaoVotadaDto } from '../opcaoVotada/dto/create-opcaovotada.dto';
 import * as crypto from 'crypto';
 import { Prisma } from '@prisma/client';
+import { CreateParticipacaoDto } from './dto/create-participacao.dto';
 
 //Defininco a costante do idSurvey e idUser para usar em todo o código
 const idSurvey = 1;
@@ -503,6 +504,43 @@ describe('ParticipacaoService', () => {
   });
 
   describe('create', () => {
+    it('Aqui deve criar o voto e retornar a hash', async () => {
+      // Arrange: configuração inicial do teste
+      const createParticipacaoDto: CreateParticipacaoDto = {
+        voto: {
+          opcoesVotadas: [{ idOption: 1 }, { idOption: 2 }],
+        },
+      };
+      const previousHash = 'Hash prevista';
+      const testHash = 'Hash teste';
+      const idVote = 123;
+
+      // Mock para a transação
+      jest.spyOn(prismaService, '$transaction').mockImplementation(async (callback) => {
+        // Chama o callback com prismaService e retorna o valor esperado
+        return await callback(prismaService);
+      });
+
+      jest.spyOn(service, 'checkSurvey').mockResolvedValueOnce(undefined);
+      jest.spyOn(service, 'checkUser').mockResolvedValueOnce(undefined);
+      jest.spyOn(service, 'checkOptions').mockResolvedValueOnce(undefined);
+      jest.spyOn(service, 'checkDuplicatedOptions').mockResolvedValueOnce(undefined);
+      jest.spyOn(service, 'checkOptionsSurvey').mockResolvedValueOnce(undefined);
+      jest.spyOn(service, 'checkOptionsPerQuestion').mockResolvedValueOnce(undefined);
+      jest.spyOn(service, 'createParticipation').mockResolvedValueOnce(undefined);
+      jest.spyOn(service, 'getPreviousHash').mockResolvedValueOnce(previousHash);
+      jest.spyOn(service, 'generateHash').mockResolvedValueOnce(testHash);
+      jest.spyOn(service, 'createVote').mockResolvedValueOnce(idVote);
+      jest.spyOn(service, 'createOptionsVoted').mockResolvedValueOnce(undefined);
+
+      // Act
+      const result = await service.create(createParticipacaoDto, idUser, idSurvey);
+
+      // Assert: verifica se o valor esperado confere
+      expect(result).toBe(testHash);
+      expect(prismaService.$transaction).toHaveBeenCalled();
+    });
+
     it('Aqui deve lançar uma exceção de conflito se houver um erro conhecido do Prisma', async () => {
       // Arrange: configuração inicial do teste
       const createParticipacaoDto = {
