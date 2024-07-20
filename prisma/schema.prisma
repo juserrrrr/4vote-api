@@ -92,9 +92,11 @@ model Usuario {
   email        String         @unique(map: "Usuario_ak_email") @db.VarChar(255)
   cpf          String         @unique(map: "Usuario_ak_cpf") @db.VarChar(14)
   senha        String         @db.VarChar(255)
+  validado  Boolean @default(false)
   URLimagem    String?        @db.VarChar(255)
   Participacao Participacao[]
   Pesquisa     Pesquisa[]
+  CodigoValidacao CodigoValidacao[]
 }
 
 model Voto {
@@ -102,4 +104,13 @@ model Voto {
   data         DateTime       @db.DateTime(0)
   hash         String         @db.VarChar(255)
   Opcao_Votada Opcao_Votada[]
+}
+
+model CodigoValidacao {
+  id        Int      @id @default(autoincrement())
+  usuarioId Int
+  codigo    String
+  usuario   Usuario  @relation(fields: [usuarioId], references: [id])
+
+  @@index([usuarioId])
 }

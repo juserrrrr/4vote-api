@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsEmail, IsString } from 'class-validator';
+import { IsNotEmpty, IsEmail, IsString, IsBoolean } from 'class-validator';
 import { CreateUsuarioDto } from '../../usuarios/dto/create-usuario.dto';
 
 export class AuthCadastroDto extends CreateUsuarioDto {
@@ -17,4 +17,7 @@ export class AuthCadastroDto extends CreateUsuarioDto {
   @IsNotEmpty()
   @IsString()
   cpf: string;
+
+  @IsBoolean()
+  validado: boolean = false;
 }
