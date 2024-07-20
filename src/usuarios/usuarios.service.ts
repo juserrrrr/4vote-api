@@ -28,7 +28,7 @@ export class UsuariosService {
   async findMe(userId: number) {
     try {
       const user = await this.prisma.$queryRaw<IFindMe[]>`
-      SELECT nome, email, cpf
+      SELECT nome, email, cpf, URLimagem
       FROM Usuario
       WHERE id=${userId}
     `;

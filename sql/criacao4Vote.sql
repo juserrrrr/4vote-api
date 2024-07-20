@@ -1,95 +1,137 @@
-CREATE DATABASE IF NOT EXISTS `teste_4vote`;
-USE `teste_4vote`;
+-- Excluir o banco de dados existente
+DROP DATABASE IF EXISTS nome_do_banco;
 
-CREATE TABLE IF NOT EXISTS `Opcao` (
-  `id` int NOT NULL AUTO_INCREMENT,
-  `pergunta_id` int NOT NULL,
-  `texto` varchar(255)  NOT NULL,
-  `quantVotos` int NOT NULL DEFAULT '0',
-  PRIMARY KEY (`id`),
-  KEY `Pergunta_Opcao` (`pergunta_id`),
-  CONSTRAINT `Pergunta_Opcao` FOREIGN KEY (`pergunta_id`) REFERENCES `Pergunta` (`id`)
-);
+-- Criar um novo banco de dados
+CREATE DATABASE nome_do_banco;
 
-CREATE TABLE IF NOT EXISTS `Opcao_Votada` (
-  `voto_id` int NOT NULL,
-  `opcao_id` int NOT NULL,
-  PRIMARY KEY (`voto_id`,`opcao_id`),
-  KEY `Opcao_Opcoes_Votadas` (`opcao_id`),
-  CONSTRAINT `Opcao_Opcoes_Votadas` FOREIGN KEY (`opcao_id`) REFERENCES `Opcao` (`id`),
-  CONSTRAINT `Voto_Opcoes_Votadas` FOREIGN KEY (`voto_id`) REFERENCES `Voto` (`id`)
-);
+-- Selecionar o banco de dados para uso
+USE nome_do_banco;
 
-CREATE TABLE IF NOT EXISTS `Participacao` (
-  `id` int NOT NULL AUTO_INCREMENT,
-  `pesquisa_id` int NOT NULL,
-  `usuario_id` int NOT NULL,
-  PRIMARY KEY (`id`),
-  KEY `Participacao_Pesquisa` (`pesquisa_id`),
-  KEY `Usuario_Participacao` (`usuario_id`),
-  CONSTRAINT `Participacao_Pesquisa` FOREIGN KEY (`pesquisa_id`) REFERENCES `Pesquisa` (`id`),
-  CONSTRAINT `Usuario_Participacao` FOREIGN KEY (`usuario_id`) REFERENCES `Usuario` (`id`)
-);
+-- CreateTable
+CREATE TABLE `Opcao` (
+    `id` INTEGER NOT NULL AUTO_INCREMENT,
+    `pergunta_id` INTEGER NOT NULL,
+    `texto` VARCHAR(255) NOT NULL,
+    `quantVotos` INTEGER NOT NULL DEFAULT 0,
 
-CREATE TABLE IF NOT EXISTS `Pergunta` (
-  `id` int NOT NULL AUTO_INCREMENT,
-  `texto` varchar(255)  NOT NULL,
-  `URLimagem` varchar(255)  DEFAULT NULL,
-  `pesquisa_id` int NOT NULL,
-  PRIMARY KEY (`id`),
-  KEY `Pesquisa_Pergunta` (`pesquisa_id`),
-  CONSTRAINT `Pesquisa_Pergunta` FOREIGN KEY (`pesquisa_id`) REFERENCES `Pesquisa` (`id`)
-);
+    INDEX `Pergunta_Opcao`(`pergunta_id`),
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
-CREATE TABLE IF NOT EXISTS `Pesquisa` (
-  `id` int NOT NULL AUTO_INCREMENT,
-  `titulo` varchar(255)  NOT NULL,
-  `codigo` varchar(11)  NOT NULL,
-  `dataCriacao` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `dataTermino` timestamp NOT NULL,
-  `ehPublico` tinyint(1) NOT NULL,
-  `descricao` text ,
-  `criador` int NOT NULL,
-  `arquivado` tinyint(1) NOT NULL DEFAULT '0',
-  `URLimagem` varchar(255)  DEFAULT NULL,
-  `ehVotacao` tinyint(1) NOT NULL,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `Pesquisa_ak_codigo` (`codigo`),
-  KEY `Criar` (`criador`),
-  CONSTRAINT `Criar` FOREIGN KEY (`criador`) REFERENCES `Usuario` (`id`)
-);
+-- CreateTable
+CREATE TABLE `Opcao_Votada` (
+    `voto_id` INTEGER NOT NULL,
+    `opcao_id` INTEGER NOT NULL,
 
-CREATE TABLE IF NOT EXISTS `Tag` (
-  `id` int NOT NULL AUTO_INCREMENT,
-  `nome` varchar(255)  NOT NULL,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `Tag_ak_nome` (`nome`)
-);
+    INDEX `Opcao_Opcoes_Votadas`(`opcao_id`),
+    PRIMARY KEY (`voto_id`, `opcao_id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
-CREATE TABLE IF NOT EXISTS `Tag_Pesquisa` (
-  `tag_id` int NOT NULL,
-  `pesquisa_id` int NOT NULL,
-  PRIMARY KEY (`tag_id`,`pesquisa_id`),
-  KEY `Pesquisa_Tags_Pesquisa` (`pesquisa_id`),
-  CONSTRAINT `Pesquisa_Tags_Pesquisa` FOREIGN KEY (`pesquisa_id`) REFERENCES `Pesquisa` (`id`),
-  CONSTRAINT `Tag_Tags_Pesquisa` FOREIGN KEY (`tag_id`) REFERENCES `Tag` (`id`)
-);
+-- CreateTable
+CREATE TABLE `Participacao` (
+    `id` INTEGER NOT NULL AUTO_INCREMENT,
+    `pesquisa_id` INTEGER NOT NULL,
+    `usuario_id` INTEGER NOT NULL,
 
-CREATE TABLE IF NOT EXISTS `Usuario` (
-  `id` int NOT NULL AUTO_INCREMENT,
-  `nome` varchar(255)  NOT NULL,
-  `email` varchar(255)  NOT NULL,
-  `cpf` varchar(14)  NOT NULL,
-  `senha` varchar(255)  NOT NULL,
-  `URLimagem` varchar(255)  DEFAULT NULL,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `Usuario_ak_email` (`email`),
-  UNIQUE KEY `Usuario_ak_cpf` (`cpf`)
-);
+    INDEX `Participacao_Pesquisa`(`pesquisa_id`),
+    INDEX `Usuario_Participacao`(`usuario_id`),
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
-CREATE TABLE IF NOT EXISTS `Voto` (
-  `id` int NOT NULL AUTO_INCREMENT,
-  `data` datetime NOT NULL,
-  `hash` varchar(255)  NOT NULL,
-  PRIMARY KEY (`id`)
-);
+-- CreateTable
+CREATE TABLE `Pergunta` (
+    `id` INTEGER NOT NULL AUTO_INCREMENT,
+    `texto` VARCHAR(255) NOT NULL,
+    `URLimagem` VARCHAR(255) NULL,
+    `pesquisa_id` INTEGER NOT NULL,
+
+    INDEX `Pesquisa_Pergunta`(`pesquisa_id`),
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
+CREATE TABLE `Pesquisa` (
+    `id` INTEGER NOT NULL AUTO_INCREMENT,
+    `titulo` VARCHAR(255) NOT NULL,
+    `codigo` VARCHAR(11) NOT NULL,
+    `dataCriacao` TIMESTAMP(0) NOT NULL DEFAULT CURRENT_TIMESTAMP(0),
+    `dataTermino` TIMESTAMP(0) NOT NULL,
+    `ehPublico` BOOLEAN NOT NULL,
+    `descricao` TEXT NULL,
+    `criador` INTEGER NOT NULL,
+    `arquivado` BOOLEAN NOT NULL DEFAULT false,
+    `URLimagem` VARCHAR(255) NULL,
+    `ehVotacao` BOOLEAN NOT NULL,
+
+    UNIQUE INDEX `Pesquisa_ak_codigo`(`codigo`),
+    INDEX `Criar`(`criador`),
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
+CREATE TABLE `Tag` (
+    `id` INTEGER NOT NULL AUTO_INCREMENT,
+    `nome` VARCHAR(255) NOT NULL,
+
+    UNIQUE INDEX `Tag_ak_nome`(`nome`),
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
+CREATE TABLE `Tag_Pesquisa` (
+    `tag_id` INTEGER NOT NULL,
+    `pesquisa_id` INTEGER NOT NULL,
+
+    INDEX `Pesquisa_Tags_Pesquisa`(`pesquisa_id`),
+    PRIMARY KEY (`tag_id`, `pesquisa_id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
+CREATE TABLE `Usuario` (
+    `id` INTEGER NOT NULL AUTO_INCREMENT,
+    `nome` VARCHAR(255) NOT NULL,
+    `email` VARCHAR(255) NOT NULL,
+    `cpf` VARCHAR(14) NOT NULL,
+    `senha` VARCHAR(255) NOT NULL,
+    `URLimagem` VARCHAR(255) NULL,
+
+    UNIQUE INDEX `Usuario_ak_email`(`email`),
+    UNIQUE INDEX `Usuario_ak_cpf`(`cpf`),
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
+CREATE TABLE `Voto` (
+    `id` INTEGER NOT NULL AUTO_INCREMENT,
+    `data` DATETIME(0) NOT NULL,
+    `hash` VARCHAR(255) NOT NULL,
+
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- AddForeignKey
+ALTER TABLE `Opcao` ADD CONSTRAINT `Pergunta_Opcao` FOREIGN KEY (`pergunta_id`) REFERENCES `Pergunta`(`id`) ON DELETE NO ACTION ON UPDATE NO ACTION;
+
+-- AddForeignKey
+ALTER TABLE `Opcao_Votada` ADD CONSTRAINT `Opcao_Opcoes_Votadas` FOREIGN KEY (`opcao_id`) REFERENCES `Opcao`(`id`) ON DELETE NO ACTION ON UPDATE NO ACTION;
+
+-- AddForeignKey
+ALTER TABLE `Opcao_Votada` ADD CONSTRAINT `Voto_Opcoes_Votadas` FOREIGN KEY (`voto_id`) REFERENCES `Voto`(`id`) ON DELETE NO ACTION ON UPDATE NO ACTION;
+
+-- AddForeignKey
+ALTER TABLE `Participacao` ADD CONSTRAINT `Participacao_Pesquisa` FOREIGN KEY (`pesquisa_id`) REFERENCES `Pesquisa`(`id`) ON DELETE NO ACTION ON UPDATE NO ACTION;
+
+-- AddForeignKey
+ALTER TABLE `Participacao` ADD CONSTRAINT `Usuario_Participacao` FOREIGN KEY (`usuario_id`) REFERENCES `Usuario`(`id`) ON DELETE NO ACTION ON UPDATE NO ACTION;
+
+-- AddForeignKey
+ALTER TABLE `Pergunta` ADD CONSTRAINT `Pesquisa_Pergunta` FOREIGN KEY (`pesquisa_id`) REFERENCES `Pesquisa`(`id`) ON DELETE NO ACTION ON UPDATE NO ACTION;
+
+-- AddForeignKey
+ALTER TABLE `Pesquisa` ADD CONSTRAINT `Criar` FOREIGN KEY (`criador`) REFERENCES `Usuario`(`id`) ON DELETE NO ACTION ON UPDATE NO ACTION;
+
+-- AddForeignKey
+ALTER TABLE `Tag_Pesquisa` ADD CONSTRAINT `Pesquisa_Tags_Pesquisa` FOREIGN KEY (`pesquisa_id`) REFERENCES `Pesquisa`(`id`) ON DELETE NO ACTION ON UPDATE NO ACTION;
+
+-- AddForeignKey
+ALTER TABLE `Tag_Pesquisa` ADD CONSTRAINT `Tag_Tags_Pesquisa` FOREIGN KEY (`tag_id`) REFERENCES `Tag`(`id`) ON DELETE NO ACTION ON UPDATE NO ACTION;
