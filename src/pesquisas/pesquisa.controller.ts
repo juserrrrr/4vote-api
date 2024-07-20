@@ -19,6 +19,11 @@ export class PesquisaController {
     return this.pesquisaService.create(createPesquisaDto, idUser);
   }
 
+  @Get('codigos')
+  findAllCodes() {
+    return this.pesquisaService.findAllCodes();
+  }
+
   @Get('filtrar')
   filterSurvey(@Query() query: filterPesquisaDto, @Req() req: any) {
     const idUser = req.user.sub;

@@ -1,8 +1,15 @@
 import { Injectable } from '@nestjs/common';
+import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class VotoService {
-  findOne(id: number): string {
-    return `Aqui retorna o voto com o id ${id.toString}`;
+  constructor(private readonly prisma: PrismaService) {}
+
+  async findOne(id: number) {
+    return await this.prisma.voto.findUnique({
+      where: {
+        id: id,
+      },
+    });
   }
 }

@@ -35,6 +35,7 @@ model Participacao {
   Pesquisa    Pesquisa @relation(fields: [pesquisa_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "Participacao_Pesquisa")
   Usuario     Usuario  @relation(fields: [usuario_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "Usuario_Participacao")
 
+  @@unique(name: "participation", fields: [usuario_id, pesquisa_id]) 
   @@index([pesquisa_id], map: "Participacao_Pesquisa")
   @@index([usuario_id], map: "Usuario_Participacao")
 }
@@ -101,7 +102,7 @@ model Usuario {
 
 model Voto {
   id           Int            @id @default(autoincrement())
-  data         DateTime       @db.DateTime(0)
+  data         DateTime       @default(now()) @db.Timestamp(0)
   hash         String         @db.VarChar(255)
   Opcao_Votada Opcao_Votada[]
 }

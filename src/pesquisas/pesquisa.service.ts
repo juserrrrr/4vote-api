@@ -232,6 +232,19 @@ export class PesquisaService {
     }
   }
 
+  async findAllCodes() {
+    try {
+      const allCodes = await this.prismaService.$queryRaw`
+        SELECT Pesquisa.codigo
+        FROM Pesquisa;
+      `;
+
+      return allCodes;
+    } catch (error) {
+      throw new InternalServerErrorException('Erro interno ao buscar as pesquisas');
+    }
+  }
+
   async findByCode(code: string) {
     try {
       //Puxar as informações de perguntas e opções
