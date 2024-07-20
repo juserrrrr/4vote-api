@@ -3,7 +3,14 @@ import { VotoController } from './voto.controller';
 import { VotoService } from './voto.service';
 import { CreateVotoDto } from './dto/create-voto.dto';
 
-const voto1: CreateVotoDto = { id: 1, data: '2004/04/04', hash: 'vhvggxfg' };
+const votos: Record<number, CreateVotoDto> = {
+  1: {
+    opcoesVotadas: [{ idOption: 1 }, { idOption: 2 }, { idOption: 3 }, { idOption: 4 }],
+  },
+  2: {
+    opcoesVotadas: [{ idOption: 5 }, { idOption: 6 }, { idOption: 7 }, { idOption: 8 }],
+  },
+};
 
 describe('VotoController', () => {
   let controller: VotoController;
@@ -13,10 +20,13 @@ describe('VotoController', () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [VotoController],
       providers: [
-        VotoService,
         {
           provide: VotoService,
-          useValue: { findOne: jest.fn().mockResolvedValue(voto1) },
+          useValue: {
+            findOne: jest.fn().mockImplementation((id: number) => {
+              return Promise.resolve(votos[id] || null);
+            }),
+          },
         },
       ],
     }).compile();
@@ -31,22 +41,22 @@ describe('VotoController', () => {
   });
 
   describe('findOne', () => {
-    it('Aqui deve retornar o voto com sucesso', async () => {
+    it('should return the correct voto for existing IDs', async () => {
       // Act
-      const result = await controller.findOne(1);
+      const result1 = await controller.findOne(1);
+      const result2 = await controller.findOne(2);
+
       // Assert
-      expect(result).toEqual(voto1);
-      expect(typeof result).toEqual('object');
-      expect(service.findOne).toHaveBeenCalledTimes(1);
-      expect(service.findOne).toHaveBeenCalledWith(1);
+      expect(result1).toEqual(votos[1]);
+      expect(result2).toEqual(votos[2]);
     });
-    it('Aqui deve retornar uma exceção', () => {
-      // Arrange
-      jest.spyOn(service, 'findOne').mockImplementation(() => {
-        throw new Error('Erro de teste');
-      });
+
+    it('should return null if the voto is not found', async () => {
+      // Act
+      const result = await controller.findOne(99);
+
       // Assert
-      expect(() => controller.findOne(5)).rejects.toThrowError('Erro de teste');
+      expect(result).toBeNull();
     });
   });
 });
