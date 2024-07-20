@@ -21,4 +21,10 @@ export class AuthController {
   async recuperarSenha(@Body('email') email: string) {
     return this.authService.recuperarSenha(email);
   }
+
+  @Post('validar-usuario')
+  async validarUsuario(@Body() body: { usuarioId: number; codigo: string }) {
+    const { usuarioId, codigo } = body;
+    return this.authService.validarUsuario(usuarioId, codigo);
+  }
 }
