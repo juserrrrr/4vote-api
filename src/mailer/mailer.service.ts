@@ -32,8 +32,8 @@ export class MailerService {
 
   // Método para carregar o template HTML do email
   loadTemplate(templateName: string): string {
-    const filePath = path.join(__dirname, '..', '..', 'templates', `${templateName}.html`);
-    return fs.readFileSync(filePath, 'utf-8');
+    const templatePath = path.join(__dirname, '../../templates', `${templateName}.html`);
+    return fs.readFileSync(templatePath, 'utf8');
   }
 
   // Método para enviar o email usando Nodemailer
