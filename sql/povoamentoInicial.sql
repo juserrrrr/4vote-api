@@ -1,26 +1,25 @@
 INSERT INTO Usuario (nome, email, cpf, senha, URLimagem) 
 VALUES 
-('João Silva', 'joao.silva@gmail.com', '123.456.789-00', 'senha552', NULL),
-('Maria Oliveira', 'maria.oliveira@gmail.com', '987.654.321-00', 'senha321', NULL),
-('Carlos Pereira', 'carlos.pereira@gmail.com', '456.123.789-11', 'senha446', NULL),
-('Alice Silva', 'alice.silva@gmail.com', '123.456.789-01', 'senha123', NULL),
-('Bob Oliveira', 'bob.oliveira@gmail.com', '234.567.890-12', 'senha456', NULL),
-('Carlos Pereira', 'carlos.pereira@example.com', '345.678.901-23', 'senha789', NULL),
-('Diana Costa', 'diana.costa@example.com', '456.789.012-34', 'senha012', NULL);
-('Roberto Olieira', 'roberto.oliveira@gmail.com', '895.854.963-99', 'senha888', NULL), 
-('Fernanda Gomes', 'fernanda.gomes@gmail.com', '567.890.123-45', 'senha999', NULL),
-('Igor Santos', 'igor.santos@gmail.com', '678.901.234-56', 'senha111', NULL),
-('Patricia Lima', 'patricia.lima@gmail.com', '789.012.345-67', 'senha222', NULL),
-('Leonardo Souza', 'leonardo.souza@gmail.com', '890.123.456-78', 'senha333', NULL),
-('Gabriela Rocha', 'gabriela.rocha@gmail.com', '901.234.567-89', 'senha444', NULL),
-('Mateus Ribeiro', 'mateus.ribeiro@gmail.com', '012.345.678-90', 'senha555', NULL),
-('Larissa Costa', 'larissa.costa@gmail.com', '123.456.789-12', 'senha666', NULL),
-('Juliana Dias', 'juliana.dias@gmail.com', '234.567.890-23', 'senha777', NULL),
-('Felipe Martins', 'felipe.martins@gmail.com', '345.678.901-34', 'senha888', NULL),
-('Renata Almeida', 'renata.almeida@gmail.com', '456.789.012-45', 'senha999', NULL),
-('Thiago Fernandes', 'thiago.fernandes@gmail.com', '567.890.123-56', 'senha000', NULL),
-('Marcela Souza', 'marcela.souza@gmail.com', '678.901.234-67', 'senha1111', NULL);
-
+('João Silva', 'joao.silva@gmail.com', '123.456.789-00', '$2b$10$3SqxIUwoI9A2I5AsG9sMZucBNt9ctnfslzbscUFZDK4qa9WpgqigS', NULL),
+('Maria Oliveira', 'maria.oliveira@gmail.com', '987.654.321-00', '$2b$10$3SqxIUwoI9A2I5AsG9sMZucBNt9ctnfslzbscUFZDK4qa9WpgqigS', NULL),
+('Carlos Pereira', 'carlos.pereira@gmail.com', '456.123.789-11', 'sen$2b$10$3SqxIUwoI9A2I5AsG9sMZucBNt9ctnfslzbscUFZDK4qa9WpgqigSha446', NULL),
+('Alice Silva', 'alice.silva@gmail.com', '123.456.789-01', '$2b$10$3SqxIUwoI9A2I5AsG9sMZucBNt9ctnfslzbscUFZDK4qa9WpgqigS', NULL),
+('Bob Oliveira', 'bob.oliveira@gmail.com', '234.567.890-12', '$2b$10$3SqxIUwoI9A2I5AsG9sMZucBNt9ctnfslzbscUFZDK4qa9WpgqigS', NULL),
+('Carlos Pereira', 'carlos.pereira@example.com', '345.678.901-23', '$2b$10$3SqxIUwoI9A2I5AsG9sMZucBNt9ctnfslzbscUFZDK4qa9WpgqigS', NULL),
+('Diana Costa', 'diana.costa@example.com', '456.789.012-34', '$2b$10$3SqxIUwoI9A2I5AsG9sMZucBNt9ctnfslzbscUFZDK4qa9WpgqigS', NULL),
+('Roberto Oliveira', 'roberto.oliveira@gmail.com', '895.854.963-99', '$2b$10$3SqxIUwoI9A2I5AsG9sMZucBNt9ctnfslzbscUFZDK4qa9WpgqigS', NULL), 
+('Fernanda Gomes', 'fernanda.gomes@gmail.com', '567.890.123-45', '$2b$10$3SqxIUwoI9A2I5AsG9sMZucBNt9ctnfslzbscUFZDK4qa9WpgqigS', NULL),
+('Igor Santos', 'igor.santos@gmail.com', '678.901.234-56', '$2b$10$3SqxIUwoI9A2I5AsG9sMZucBNt9ctnfslzbscUFZDK4qa9WpgqigS', NULL),
+('Patricia Lima', 'patricia.lima@gmail.com', '789.012.345-67', '$2b$10$3SqxIUwoI9A2I5AsG9sMZucBNt9ctnfslzbscUFZDK4qa9WpgqigS', NULL),
+('Leonardo Souza', 'leonardo.souza@gmail.com', '890.123.456-78', '$2b$10$3SqxIUwoI9A2I5AsG9sMZucBNt9ctnfslzbscUFZDK4qa9WpgqigS', NULL),
+('Gabriela Rocha', 'gabriela.rocha@gmail.com', '901.234.567-89', '$2b$10$3SqxIUwoI9A2I5AsG9sMZucBNt9ctnfslzbscUFZDK4qa9WpgqigS', NULL),
+('Mateus Ribeiro', 'mateus.ribeiro@gmail.com', '012.345.678-90', '$2b$10$3SqxIUwoI9A2I5AsG9sMZucBNt9ctnfslzbscUFZDK4qa9WpgqigS', NULL),
+('Larissa Costa', 'larissa.costa@gmail.com', '123.456.789-12', '$2b$10$3SqxIUwoI9A2I5AsG9sMZucBNt9ctnfslzbscUFZDK4qa9WpgqigS', NULL),
+('Juliana Dias', 'juliana.dias@gmail.com', '234.567.890-23', '$2b$10$3SqxIUwoI9A2I5AsG9sMZucBNt9ctnfslzbscUFZDK4qa9WpgqigS', NULL),
+('Felipe Martins', 'felipe.martins@gmail.com', '345.678.901-34', '$2b$10$3SqxIUwoI9A2I5AsG9sMZucBNt9ctnfslzbscUFZDK4qa9WpgqigS', NULL),
+('Renata Almeida', 'renata.almeida@gmail.com', '456.789.012-45', '$2b$10$3SqxIUwoI9A2I5AsG9sMZucBNt9ctnfslzbscUFZDK4qa9WpgqigS', NULL),
+('Thiago Fernandes', 'thiago.fernandes@gmail.com', '567.890.123-56', '$2b$10$3SqxIUwoI9A2I5AsG9sMZucBNt9ctnfslzbscUFZDK4qa9WpgqigS', NULL),
+('Marcela Souza', 'marcela.souza@gmail.com', '678.901.234-67', '$2b$10$3SqxIUwoI9A2I5AsG9sMZucBNt9ctnfslzbscUFZDK4qa9WpgqigS', NULL);
 
 INSERT INTO Pesquisa (titulo, codigo, dataCriacao, dataTermino, ehPublico, descricao, criador, arquivado, URLimagem, ehVotacao)
 VALUES
@@ -28,7 +27,7 @@ VALUES
 ('Pesquisa de Produtos', 'PESQ789012', '2024-06-05 12:00:00', '2024-06-20 12:00:00', 1, 'Pesquisa para avaliar a aceitação de novos produtos.', 2, 0, NULL, 0),
 ('Pesquisa de Feedback', 'PESQ345678', '2024-06-22 10:00:00', '2024-07-22 10:00:00', 1, 'Pesquisa para coletar feedback dos usuários.', 3, 0, NULL, 1),
 ('Pesquisa de Novos Produtos', 'PESQ901234', '2024-06-23 10:00:00', '2024-07-23 10:00:00', 1, 'Pesquisa sobre novos produtos.', 4, 0, NULL, 1),
-('Votação DA ECOMP', 'VOT123456', '2024-06-25 15:53:39', '2024-06-27 15:53:42', 1, 'Votação das chapas do Diretório Acadêmico de Computação', 1, 0, NULL, 1);
+('Votação DA ECOMP', 'VOT123456', '2024-06-25 15:53:39', '2024-06-27 15:53:42', 1, 'Votação das chapas do Diretório Acadêmico de Computação', 1, 0, NULL, 1),
 ('Pesquisa de Mercado', 'PESQ567890', '2024-07-01 09:00:00', '2024-07-15 09:00:00', 1, 'Pesquisa para entender as tendências de mercado.', 5, 0, NULL, 0),
 ('Pesquisa de Satisfação Interna', 'PESQ234567', '2024-07-05 08:30:00', '2024-07-20 08:30:00', 1, 'Pesquisa para avaliar a satisfação dos funcionários.', 6, 0, NULL, 0),
 ('Pesquisa de Engajamento', 'PESQ678901', '2024-07-10 14:00:00', '2024-07-25 14:00:00', 1, 'Pesquisa para medir o engajamento dos usuários.', 7, 0, NULL, 0),
@@ -51,7 +50,7 @@ VALUES
 ('Você recomendaria nossos produtos para outras pessoas?', NULL, 1),
 ('Qual é o seu produto favorito?', NULL, 3),
 ('O que você achou do nosso atendimento?', NULL, 3),
-('Quais novos produtos você gostaria de ver?', NULL, 4);
+('Quais novos produtos você gostaria de ver?', NULL, 4),
 ('Como podemos melhorar nosso serviço?', NULL, 1),
 ('Você está satisfeito com a variedade de produtos oferecidos?', NULL, 1),
 ('Quais são os pontos fortes dos nossos produtos?', NULL, 3),
@@ -102,7 +101,7 @@ INSERT INTO Voto (data, hash) VALUES
 ('2024-06-21 10:00:00', 'hashvoto123'),
 ('2024-06-21 11:00:00', 'hashvoto456'),
 ('2024-06-22 12:00:00', 'hashvoto789'),
-('2024-06-23 13:00:00', 'hashvoto012');
+('2024-06-23 13:00:00', 'hashvoto012'),
 ('2024-06-24 14:00:00', 'hash3'),
 ('2024-06-25 15:00:00', 'hash4'),
 ('2024-06-26 16:00:00', 'hash5'),
@@ -144,13 +143,13 @@ INSERT INTO Tag (nome) VALUES
 ('Produtos'),
 ('Qualidade'),
 ('Preferências'),
-('Feedback');
+('Feedback'),
 ('Atendimento'),
 ('Inovação'),
 ('Usabilidade'),
 ('Mercado'),
-('Tecnologia');
-('Política')
+('Tecnologia'),
+('Política');
 
 INSERT INTO Tag_Pesquisa (tag_id, pesquisa_id) VALUES
 (1, 1),

@@ -1,6 +1,11 @@
+import { IsNotEmpty, IsOptional, IsString, Length } from 'class-validator';
+
 export class CreateOpcaoDto {
-  id: number;
-  pergunta_id: number;
+  @IsString({ message: 'O texto da opção deve ser uma string' })
+  @IsNotEmpty({ message: 'O texto da opção é obrigatório' })
+  @Length(5, 100, { message: 'O texto da opção deve ter entre 5 e 100 caracteres' })
   texto: string;
-  quantVotos: number;
+
+  @IsOptional()
+  imagemOpcao?: any;
 }
