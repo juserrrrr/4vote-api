@@ -110,7 +110,7 @@ model Voto {
 model CodigoValidacao {
   id        Int      @id @default(autoincrement())
   usuarioId Int
-  codigo    String
+  codigo    String   @unique(map: "codigo_ak_usuario") @db.VarChar(255)
   usuario   Usuario  @relation(fields: [usuarioId], references: [id])
 
   @@index([usuarioId])

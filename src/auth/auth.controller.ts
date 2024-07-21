@@ -1,4 +1,4 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import { Body, Controller, Param, Post } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { AuthCadastroDto } from './dto/auth-cadastro.dto';
 import { AuthEntrarDto } from './dto/auth-entrar.dto';
@@ -8,23 +8,22 @@ export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Post('entrar')
-  async entrar(@Body() entrarDto: AuthEntrarDto) {
-    return this.authService.entrar(entrarDto);
+  async entrar(@Body() loginDto: AuthEntrarDto) {
+    return this.authService.login(loginDto);
   }
 
   @Post('cadastro')
-  async cadastro(@Body() cadastroDto: AuthCadastroDto) {
-    return this.authService.cadastro(cadastroDto);
+  async cadastro(@Body() registerDto: AuthCadastroDto) {
+    return this.authService.register(registerDto);
   }
 
   @Post('recuperar-senha')
   async recuperarSenha(@Body('email') email: string) {
-    return this.authService.recuperarSenha(email);
+    return this.authService.recoverPassword(email);
   }
 
-  @Post('validar-usuario')
-  async validarUsuario(@Body() body: { usuarioId: number; codigo: string }) {
-    const { usuarioId, codigo } = body;
-    return this.authService.validarUsuario(usuarioId, codigo);
+  @Post('validar-usuario/:codeVal')
+  async validarUsuario(@Param() codeVal: string) {
+    return this.authService.validadeUser(codeVal);
   }
 }

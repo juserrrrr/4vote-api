@@ -4,7 +4,6 @@ import { compare, genSalt, hash } from 'bcrypt';
 import { AuthCadastroDto } from './dto/auth-cadastro.dto';
 import { AuthEntrarDto } from './dto/auth-entrar.dto';
 import { PrismaService } from '../prisma/prisma.service';
-import { UsuariosService } from '../usuarios/usuarios.service';
 import { MailerService } from '../mailer/mailer.service';
 
 @Injectable()
@@ -14,13 +13,27 @@ export class AuthService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly jwtService: JwtService,
-    private readonly usuariosService: UsuariosService,
     private readonly mailerService: MailerService,
   ) {
     this.frontendBaseUrl = process.env.FRONTEND_BASE_URL;
   }
 
-  criarToken({ id, nome }: { id: number; nome: string }) {
+  private async generateUniqueCode(): Promise<string> {
+    let isUnique = false;
+    let uniqueCode = '';
+    while (!isUnique) {
+      uniqueCode = Math.random().toString(36).substring(2, 8); // Gera um código aleatório
+      const existing = await this.prisma.codigoValidacao.findUnique({
+        where: { codigo: uniqueCode },
+      });
+      if (!existing) {
+        isUnique = true;
+      }
+    }
+    return uniqueCode;
+  }
+
+  createToken({ id, nome }: { id: number; nome: string }) {
     const accessToken = this.jwtService.sign(
       {
         nome,
@@ -35,7 +48,7 @@ export class AuthService {
     return { accessToken };
   }
 
-  async entrar(entrarDto: AuthEntrarDto) {
+  async login(entrarDto: AuthEntrarDto) {
     const usuario = await this.prisma.usuario.findUnique({
       where: { email: entrarDto.email },
     });
@@ -49,22 +62,21 @@ export class AuthService {
     }
 
     const payload = { id: usuario.id, nome: usuario.nome };
-    return this.criarToken(payload);
+    return this.createToken(payload);
   }
 
-  async cadastro(cadastroDto: AuthCadastroDto) {
+  async register(cadastroDto: AuthCadastroDto) {
     const salt = await genSalt();
     cadastroDto.senha = await hash(cadastroDto.senha, salt);
-    const usuario = await this.usuariosService.create({
-      ...cadastroDto,
-      validado: false, // Definido como não validado inicialmente
+    const usuario = await this.prisma.usuario.create({
+      data: { ...cadastroDto, validado: false },
     });
     if (!usuario) {
       throw new UnauthorizedException('Erro ao cadastrar usuário');
     }
 
     // Gera um código de validação
-    const codigoValidacao = Math.random().toString(36).substr(2, 8);
+    const codigoValidacao = await this.generateUniqueCode();
     await this.prisma.codigoValidacao.create({
       data: {
         usuarioId: usuario.id,
@@ -72,10 +84,8 @@ export class AuthService {
       },
     });
 
-    const payload = { id: usuario.id, nome: usuario.nome };
-
     // Gerar o link de validação para o front-end usando a variável de ambiente
-    const linkValidacao = `${this.frontendBaseUrl}/validar-usuario?usuarioId=${usuario.id}&codigo=${codigoValidacao}`;
+    const linkValidacao = `${this.frontendBaseUrl}/autenticar/${codigoValidacao}`;
 
     // Envia o e-mail com o link de validação
     const template = this.mailerService.loadTemplate('codigo-validacao');
@@ -91,19 +101,18 @@ export class AuthService {
       subject: 'Validação de Conta',
       html: emailHtml,
     });
-
-    return this.criarToken(payload);
+    return { message: 'Usuário cadastrado com sucesso, verifique seu email' };
   }
 
   // Função de recuperação de senha
-  async recuperarSenha(email: string) {
+  async recoverPassword(email: string) {
     // Procura pelo usuário no banco de dados com base no email fornecido
-    const usuario = await this.prisma.usuario.findUnique({
-      where: { email },
+    const user = await this.prisma.usuario.findUnique({
+      where: { email: email },
     });
 
     // Se o usuário não for encontrado, lança uma exceção NotFoundException
-    if (!usuario) {
+    if (!user) {
       throw new NotFoundException('Usuário não encontrado');
     }
 
@@ -123,13 +132,13 @@ export class AuthService {
     // Carrega o template de email de recuperação de senha
     const template = this.mailerService.loadTemplate('password-reset');
     const replacements = {
-      nome: usuario.nome, // Nome do usuário para personalizar o email
+      nome: user.nome, // Nome do usuário para personalizar o email
       novaSenha, // Nova senha para informar ao usuário
     };
 
     // Envia o email de recuperação de senha usando o serviço de email
     await this.mailerService.sendEmail({
-      recipients: [{ name: usuario.nome, address: email }],
+      recipients: [{ name: user.nome, address: email }],
       subject: 'Recuperação de Senha', // Assunto do email
       html: this.mailerService.template(template, replacements), // Conteúdo do email com placeholders substituídos
     });
@@ -138,25 +147,72 @@ export class AuthService {
     return { message: 'Nova senha enviada para o email' };
   }
 
+  async resendValidationEmail(email: string) {
+    // Procura pelo usuário no banco de dados com base no email fornecido
+    const user = await this.prisma.usuario.findUnique({
+      where: { email },
+    });
+
+    // Se o usuário não for encontrado, lança uma exceção NotFoundException
+    if (!user) {
+      throw new NotFoundException('Usuário não encontrado');
+    }
+
+    // Procura pelo código de validação no banco de dados com base no ID do usuário
+    const codigoValidacao = await this.prisma.codigoValidacao.findFirst({
+      where: { usuarioId: user.id },
+    });
+
+    // Se o código de validação não for encontrado, lança uma exceção NotFoundException
+    if (!codigoValidacao) {
+      throw new NotFoundException('Código de validação não encontrado');
+    }
+
+    // Gera um link de validação para o front-end usando a variável de ambiente
+    const linkValidacao = `${this.frontendBaseUrl}/autenticar/${codigoValidacao.codigo}`;
+
+    // Carrega o template de email de validação de conta
+    const template = this.mailerService.loadTemplate('codigo-validacao');
+    const replacements = {
+      nome: user.nome, // Nome do usuário para personalizar o email
+      linkValidacao, // Link de validação para o front-end
+    };
+
+    // Envia o email de validação de conta usando o serviço de email
+    this.mailerService.sendEmail({
+      recipients: [{ name: user.nome, address: email }],
+      subject: 'Validação de Conta', // Assunto do email
+      html: this.mailerService.template(template, replacements), // Conteúdo do email com placeholders substituídos
+    });
+
+    // Retorna uma mensagem de sucesso
+    return { message: 'Email de validação reenviado' };
+  }
+
   // Função de validação de conta
-  async validarUsuario(usuarioId: number, codigo: string) {
+  async validadeUser(codigo: string) {
     const validacao = await this.prisma.codigoValidacao.findFirst({
-      where: { usuarioId, codigo },
+      where: { codigo },
     });
 
     if (!validacao) {
-      throw new UnauthorizedException('Código de validação inválido');
+      throw new BadRequestException('Código de validação inválido');
     }
 
-    await this.prisma.usuario.update({
-      where: { id: usuarioId },
-      data: { validado: true },
-    });
+    try {
+      await this.prisma.$transaction(async (prismaTransaction) => {
+        await prismaTransaction.usuario.update({
+          where: { id: validacao.usuarioId },
+          data: { validado: true },
+        });
 
-    await this.prisma.codigoValidacao.delete({
-      where: { id: validacao.id },
-    });
-
-    return { message: 'Conta validada com sucesso' };
+        await prismaTransaction.codigoValidacao.delete({
+          where: { id: validacao.id },
+        });
+      });
+      return { message: 'Conta validada com sucesso' };
+    } catch (error) {
+      throw new BadRequestException('Erro ao validar a conta, tente novamente.');
+    }
   }
 }
