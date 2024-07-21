@@ -25,6 +25,7 @@ export class PesquisaController {
     return this.pesquisaService.findAllCodes();
   }
 
+  @UseGuards(AuthGuard)
   @Get('filtrar')
   filterSurvey(@Query() query: filterPesquisaDto, @Req() req: any) {
     const idUser = req.user.sub;
