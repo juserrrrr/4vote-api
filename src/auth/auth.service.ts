@@ -191,7 +191,7 @@ export class AuthService {
 
   // Função de validação de conta
   async validadeUser(codigo: string) {
-    const validacao = await this.prisma.codigoValidacao.findFirst({
+    const validacao = await this.prisma.codigoValidacao.findUnique({
       where: { codigo },
     });
 

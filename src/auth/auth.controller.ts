@@ -23,7 +23,7 @@ export class AuthController {
   }
 
   @Post('validar-usuario/:codeVal')
-  async validarUsuario(@Param() codeVal: string) {
+  async validarUsuario(@Param('codeVal') codeVal: string) {
     return this.authService.validadeUser(codeVal);
   }
 }
