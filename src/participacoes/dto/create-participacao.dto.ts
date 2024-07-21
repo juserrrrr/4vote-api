@@ -1,17 +1,10 @@
-import { IsInt, IsNotEmpty } from 'class-validator';
-import { CreateOpcaoVotadaDto } from 'src/opcaoVotada/dto/create-opcaovotada.dto';
+import { Type } from 'class-transformer';
+import { IsNotEmpty, ValidateNested } from 'class-validator';
 import { CreateVotoDto } from 'src/voto/dto/create-voto.dto';
 
 export class CreateParticipacaoDto {
-  @IsInt()
   @IsNotEmpty()
-  usuario_id: number;
-
-  @IsInt()
-  @IsNotEmpty()
-  pesquisa_id: number;
-
+  @ValidateNested({ each: true, message: 'Cada voto deve ser válido.' })
+  @Type(() => CreateVotoDto)
   voto: CreateVotoDto;
-
-  opcoesVotadas: CreateOpcaoVotadaDto[];
 }
