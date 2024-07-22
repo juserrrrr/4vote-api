@@ -14,6 +14,9 @@ import { Prisma, PrismaClient } from '@prisma/client';
 import { DefaultArgs } from '@prisma/client/runtime/library';
 import { CreateTagDto } from '../tag/dto/create-tag.dto';
 import { filterPesquisaDto } from './dto/filter-pesquisa.dto';
+import * as crypto from 'crypto';
+import { MailerService } from '../mailer/mailer.service';
+import { UsuariosService } from '../usuarios/usuarios.service';
 
 interface SurveyQueryResult {
   id: number;
@@ -40,9 +43,20 @@ interface SurveyFilterResult {
   ehVotacao: boolean;
   tagNome: string[];
 }
+
+interface Vote {
+  data: string;
+  hash: string;
+  opcao_id: number[];
+}
+
 @Injectable()
 export class PesquisaService {
-  constructor(private readonly prismaService: PrismaService) {}
+  constructor(
+    private readonly prismaService: PrismaService,
+    private readonly mailerService: MailerService,
+    private readonly userService: UsuariosService,
+  ) {}
 
   // Função para gerar um código aleatório
   // Necessario verificar um solução mais eficiente, segura e escalável
@@ -95,12 +109,10 @@ export class PesquisaService {
     >,
   ): Promise<number[]> {
     // Cria um array de valores SQL para os placeholders
-    const values = createPerguntaDto.map(
-      (pergunta) => Prisma.sql`(${pergunta.texto}, ${idPesquisa}, ${pergunta.URLimagem})`,
-    );
+    const values = createPerguntaDto.map((pergunta) => Prisma.sql`(${pergunta.texto}, ${idPesquisa})`);
     // Cria a query SQL para inserir as perguntas
     const sqlQuery = Prisma.sql`
-    INSERT INTO Pergunta (texto, pesquisa_id, URLimagem)
+    INSERT INTO Pergunta (texto, pesquisa_id)
     VALUES ${Prisma.join(values, `, `)}
     `;
     // Executa a query SQL
@@ -215,7 +227,7 @@ export class PesquisaService {
       const codigo = await this.generateUniqueCode();
       // Separa as perguntas, tags e os demais dados da pesquisa
       const { perguntas, tags, ...pesquisa } = createPesquisaDto;
-      return await this.prismaService.$transaction(async (prisma) => {
+      const responseTransaction = await this.prismaService.$transaction(async (prisma) => {
         // Cria a pesquisa e retorna o código
         const surveyId = await this.createSurvey(pesquisa, idUser, codigo, prisma);
         // Cria as perguntas e retorna os IDs
@@ -233,9 +245,29 @@ export class PesquisaService {
           await this.createSyncTagSurvery(surveyId, idsTags, prisma);
         }
 
-        const { titulo } = pesquisa;
-        return { codigo, titulo };
+        const { email, nome } = await this.userService.findMe(idUser);
+
+        const { titulo, ehPublico } = pesquisa;
+        return { codigo, titulo, email, nome, ehPublico };
       });
+      //Enviar email se for privada
+      if (!responseTransaction.ehPublico) {
+        const template = this.mailerService.loadTemplate('codigo-pesquisa-privada');
+        const replacements = {
+          titulo: responseTransaction.titulo,
+          codigo: responseTransaction.codigo,
+        };
+
+        const emailHtml = this.mailerService.template(template, replacements);
+
+        await this.mailerService.sendEmail({
+          recipients: [{ name: responseTransaction.nome, address: responseTransaction.email }],
+          subject: 'Pesquisa privada criada com sucesso',
+          html: emailHtml,
+        });
+      }
+
+      return responseTransaction;
     } catch (error) {
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
         throw new HttpException(error.message, HttpStatus.CONFLICT);
@@ -560,6 +592,83 @@ export class PesquisaService {
       return surveryArchived;
     } catch (error) {
       throw new InternalServerErrorException('Erro interno ao arquivar a pesquisa');
+    }
+  }
+
+  //Método para auditoria da pesquisa
+  async auditSurvey(codeSurvey: string) {
+    const now = new Date(); // Pegando a data de agora
+    // Remove os milissegundos
+    now.setMilliseconds(0);
+    try {
+      return await this.prismaService.$transaction(async (prisma) => {
+        // Checando se a pesquisa existe e já foi finalizada
+        this.checkSurvey(codeSurvey, now, prisma);
+        const query = await prisma.$queryRaw<Vote[]>`
+          SELECT V.data, V.hash, OV.opcao_id
+          FROM Voto V
+          JOIN Opcao_Votada OV ON V.id = OV.voto_id
+          JOIN Opcao O ON OV.opcao_id = O.id
+          JOIN Pergunta P ON O.pergunta_id = P.id
+          JOIN Pesquisa PE ON P.pesquisa_id = PE.id
+          WHERE PE.codigo = ${codeSurvey}
+          ORDER BY V.data;
+          `;
+
+        const votesSurvey = query.reduce((acc, current) => {
+          const { hash, data, opcao_id } = current;
+
+          if (!acc[hash]) {
+            acc[hash] = { data, opcao_id: [] };
+          }
+
+          acc[hash].opcao_id.push(opcao_id);
+
+          return acc;
+        }, {});
+
+        // Hashs obtidas pela auditoria
+        const hashsAudit = [];
+
+        // Valores booleanos para cada voto (true - ok, false - pesquisa fraudada)
+        const results = [];
+
+        Object.entries(votesSurvey).forEach(([key, value], index) => {
+          const { data, opcao_id } = value as Vote; // Pega os dados do voto para geraçaõ da hash
+
+          // Se o voto for o primeiro da pesquisa, pega o Sal da env, senão, pega a hash anterior
+          const previousHash = index == 0 ? process.env.SALT : hashsAudit[index - 1];
+          const date = new Date(data);
+          const optionsVotedIDs = opcao_id;
+
+          // Dados obtido do voto pela auditoria
+          const dataVote = {
+            previousHash,
+            date,
+            optionsVotedIDs,
+          };
+
+          // Geração da hash pela auditoria
+          const hashVerificacao = crypto.createHash('sha256').update(JSON.stringify(dataVote)).digest('hex');
+
+          // Insere a hash da auditoria no Banco
+          hashsAudit.push(hashVerificacao);
+
+          // Se a Hash coletada do Banco para aquele Voto for a mesma da Hash salva, retorna True, senão, False(Fraudada)
+          // console.log(`Hash do voto no Banco: ${key}\nHash gerada pela auditoria: ${hashVerificacao}`);
+          // console.log(hashVerificacao == key);
+          results.push(hashVerificacao == key);
+        });
+
+        const validSurvey = results.every((result) => result); //Verifica se tudo deu true (Pesquisa validada)
+        return validSurvey ? 'Pesquisa sem fraudes' : 'Pesquisa Fraudada!';
+      });
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        throw new HttpException(error.message, HttpStatus.CONFLICT);
+      } else if (error instanceof ForbiddenException || error instanceof NotFoundException) {
+        throw error;
+      } else throw new InternalServerErrorException('Erro interno ao criar uma participação');
     }
   }
 }
