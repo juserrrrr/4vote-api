@@ -2,7 +2,8 @@ import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as nodemailer from 'nodemailer';
 import { SendEmailDto } from './mail.interface';
-import Mail from 'nodemailer/lib/mailer';
+import * as fs from 'fs';
+import * as path from 'path';
 
 @Injectable()
 export class MailerService {
@@ -23,10 +24,19 @@ export class MailerService {
   }
 
   // Método para substituir placeholders no HTML do email por valores específicos
-  template(html: string, replacements: Record<string, string>) {
-    return html.replace(/%(.*?)%/g, (m, key) => {
-      return replacements.hasOwnProperty(key) ? replacements[key] : '';
-    });
+  template(template: string, replacements: { [key: string]: string }): string {
+    let result = template;
+    for (const key in replacements) {
+      const regex = new RegExp(`{{${key}}}`, 'g');
+      result = result.replace(regex, replacements[key]);
+    }
+    return result;
+  }
+
+  // Método para carregar o template HTML do email
+  loadTemplate(templateName: string): string {
+    const templatePath = path.join(__dirname, '../../templates', `${templateName}.html`);
+    return fs.readFileSync(templatePath, 'utf8');
   }
 
   // Método para enviar o email usando Nodemailer
@@ -38,7 +48,7 @@ export class MailerService {
     const transport = this.mailTransport();
 
     // Opções do email, incluindo remetente, destinatários, assunto e conteúdo HTML
-    const options: Mail.Options = {
+    const options: nodemailer.SendMailOptions = {
       from: from ?? {
         name: this.configService.get<string>('APP_NAME'),
         address: this.configService.get<string>('DEFAULT_EMAIL_FROM'),

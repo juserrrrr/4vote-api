@@ -1,7 +1,6 @@
 import { ConflictException, HttpException, HttpStatus, Injectable, InternalServerErrorException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { UpdateUsuarioDto } from './dto/update-usuario.dto';
-import { CreateUsuarioDto } from './dto/create-usuario.dto';
 import { Prisma } from '@prisma/client';
 
 export interface IFindMe {
@@ -13,16 +12,6 @@ export interface IFindMe {
 @Injectable()
 export class UsuariosService {
   constructor(private readonly prisma: PrismaService) {}
-
-  async create(createUsuarioDto: CreateUsuarioDto) {
-    try {
-      return await this.prisma.usuario.create({
-        data: createUsuarioDto,
-      });
-    } catch (e) {
-      console.log(e);
-    } // Desenvolver um melhor tratamento de erros
-  }
 
   // Acha o usuario atual com base no token que está nos headers
   async findMe(userId: number) {

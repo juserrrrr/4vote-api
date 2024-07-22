@@ -13,6 +13,7 @@ import { PerguntasModule } from './perguntas/perguntas.module';
 import { MailerModule } from './mailer/mailer.module';
 import { ConfigModule } from '@nestjs/config';
 import { OpcaoVotadaModule } from './opcaoVotada/opcaovotada.module';
+import { UploadModule } from './modules/upload/upload.module';
 
 @Module({
   imports: [
@@ -27,7 +28,8 @@ import { OpcaoVotadaModule } from './opcaoVotada/opcaovotada.module';
     UsuariosModule,
     VotoModule,
     ConfigModule.forRoot(),
-    MailerModule
+    MailerModule,
+    UploadModule,
   ],
   controllers: [AppController],
   providers: [AppService],
