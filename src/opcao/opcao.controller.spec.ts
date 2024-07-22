@@ -46,5 +46,10 @@ describe('OpcaoController', () => {
 
       expect(opcao1).not.toEqual(opcao2);
     });
+    it('should not return null when findOne is called for an existing id', async () => {
+      const opcao1 = await opcaoService.findOne(opcaoMock.id);
+
+      expect(opcao1).not.toBeNull();
+    });
   });
 });
