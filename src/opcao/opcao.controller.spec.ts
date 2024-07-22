@@ -51,5 +51,10 @@ describe('OpcaoController', () => {
 
       expect(opcao1).not.toBeNull();
     });
+    it('should return null when no option is found', async () => {
+      jest.spyOn(opcaoService, 'findOne').mockResolvedValue(null);
+
+      expect(await opcaoController.findOne(4)).toBeNull();
+    });
   });
 });
