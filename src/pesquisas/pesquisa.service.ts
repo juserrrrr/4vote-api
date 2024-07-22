@@ -23,6 +23,7 @@ interface SurveyQueryResult {
 interface SurveyFilterResult {
   codigo: string;
   titulo: string;
+  criador: string;
   descricao: string;
   dataTermino: Date;
   URLimagem: string;
@@ -249,7 +250,7 @@ export class PesquisaService {
     try {
       //Puxar as informações de perguntas e opções
       const surverys = await this.prismaService.$queryRaw<SurveyQueryResult[]>`
-        SELECT Pesquisa.codigo, Pesquisa.titulo, Pesquisa.descricao, Pesquisa.dataTermino, Pesquisa.ehPublico, Pesquisa.URLimagem, Pesquisa.ehVotacao, Pergunta.texto AS Pergunta, Opcao.texto AS Opcao
+        SELECT Pesquisa.codigo, Pesquisa.titulo, Pesquisa.descricao, Pesquisa.dataTermino, Pesquisa.criador, Pesquisa.ehPublico, Pesquisa.URLimagem, Pesquisa.ehVotacao, Pergunta.texto AS Pergunta, Opcao.texto AS Opcao
         FROM Pesquisa
         JOIN Pergunta ON Pesquisa.id = Pergunta.pesquisa_id
         JOIN Opcao ON Pergunta.id = Opcao.pergunta_id
@@ -300,6 +301,7 @@ export class PesquisaService {
         acc.push({
           codigo: survey.codigo,
           titulo: survey.titulo,
+          criador: survey.criador,
           descricao: survey.descricao,
           dataTermino: survey.dataTermino,
           URLimagem: survey.URLimagem,
@@ -321,7 +323,7 @@ export class PesquisaService {
   ) {
     // Inicializa a query SQL para buscar as pesquisas padrão
     let querySql = Prisma.sql`
-      SELECT p.codigo, p.titulo, p.descricao, p.dataTermino, p.URLimagem, p.ehVotacao, t.nome AS tagNome
+      SELECT p.codigo, p.titulo, p.descricao, p.dataTermino, p.criador, p.URLimagem, p.ehVotacao, t.nome AS tagNome
       FROM Pesquisa p
       LEFT JOIN Tag_Pesquisa tp ON p.id = tp.pesquisa_id
       LEFT JOIN Tag t ON tp.tag_id = t.id
