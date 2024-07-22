@@ -11,7 +11,7 @@ model Opcao {
   id           Int            @id @default(autoincrement())
   pergunta_id  Int
   texto        String         @db.VarChar(255)
-  quantVotos   Int            @default(0)
+  URLimagem   String?  @db.VarChar(255)
   Pergunta     Pergunta       @relation(fields: [pergunta_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "Pergunta_Opcao")
   Opcao_Votada Opcao_Votada[]
 
@@ -43,7 +43,6 @@ model Participacao {
 model Pergunta {
   id          Int      @id @default(autoincrement())
   texto       String   @db.VarChar(255)
-  URLimagem   String?  @db.VarChar(255)
   pesquisa_id Int
   Opcao       Opcao[]
   Pesquisa    Pesquisa @relation(fields: [pesquisa_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "Pesquisa_Pergunta")
