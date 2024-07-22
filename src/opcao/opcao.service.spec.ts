@@ -28,4 +28,17 @@ describe('OpcaoService', () => {
     expect(opcaoService).toBeDefined();
     expect(prismaService).toBeDefined();
   });
+
+  describe('findOne', () => {
+    it('should return findOne opcao', async () => {
+      const opcao1 = await opcaoService.findOne(opcaoMock.id);
+      expect(opcao1).toEqual(opcaoMock);
+    });
+
+    it('should return null when no option is found', async () => {
+      jest.spyOn(prismaService, '$queryRaw').mockResolvedValue(null);
+      const opcaoNull = await opcaoService.findOne(4);
+      expect(opcaoNull).toBeNull();
+    });
+  });
 });
