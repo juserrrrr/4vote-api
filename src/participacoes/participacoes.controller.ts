@@ -19,7 +19,7 @@ export class ParcipacoesController {
     return this.participacaoService.create(createParticipaoDto, idUser, idSurvey);
   }
 
-  @Get(':hashVote')
+  @Get('validar/:hashVote')
   validateVote(@Param('hashVote') hashVote: string) {
     return this.participacaoService.validateVote(hashVote);
   }
