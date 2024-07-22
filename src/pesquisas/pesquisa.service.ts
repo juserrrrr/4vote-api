@@ -109,12 +109,10 @@ export class PesquisaService {
     >,
   ): Promise<number[]> {
     // Cria um array de valores SQL para os placeholders
-    const values = createPerguntaDto.map(
-      (pergunta) => Prisma.sql`(${pergunta.texto}, ${idPesquisa}, ${pergunta.URLimagem})`,
-    );
+    const values = createPerguntaDto.map((pergunta) => Prisma.sql`(${pergunta.texto}, ${idPesquisa})`);
     // Cria a query SQL para inserir as perguntas
     const sqlQuery = Prisma.sql`
-    INSERT INTO Pergunta (texto, pesquisa_id, URLimagem)
+    INSERT INTO Pergunta (texto, pesquisa_id)
     VALUES ${Prisma.join(values, `, `)}
     `;
     // Executa a query SQL
@@ -254,7 +252,7 @@ export class PesquisaService {
       });
       //Enviar email se for privada
       if (!responseTransaction.ehPublico) {
-        const template = this.mailerService.loadTemplate('pesquisa-criada');
+        const template = this.mailerService.loadTemplate('codigo-pesquisa-privada');
         const replacements = {
           titulo: responseTransaction.titulo,
           codigo: responseTransaction.codigo,

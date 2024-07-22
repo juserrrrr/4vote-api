@@ -3,10 +3,10 @@ import { PesquisaController } from './pesquisa.controller';
 import { PesquisaService } from './pesquisa.service';
 import { PrismaModule } from '../prisma/prisma.module';
 import { MailerModule } from '../mailer/mailer.module';
-import { UsuariosService } from '../usuarios/usuarios.service';
+import { UsuariosModule } from '../usuarios/usuarios.module';
 
 @Module({
-  imports: [PrismaModule, MailerModule, UsuariosService],
+  imports: [PrismaModule, MailerModule, UsuariosModule],
   controllers: [PesquisaController],
   providers: [PesquisaService],
   exports: [],
