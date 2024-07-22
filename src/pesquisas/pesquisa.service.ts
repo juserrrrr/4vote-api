@@ -14,6 +14,7 @@ import { Prisma, PrismaClient } from '@prisma/client';
 import { DefaultArgs } from '@prisma/client/runtime/library';
 import { CreateTagDto } from '../tag/dto/create-tag.dto';
 import { filterPesquisaDto } from './dto/filter-pesquisa.dto';
+import * as crypto from 'crypto';
 import { MailerService } from '../mailer/mailer.service';
 import { UsuariosService } from '../usuarios/usuarios.service';
 
