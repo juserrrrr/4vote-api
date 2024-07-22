@@ -1,4 +1,11 @@
-import { HttpException, HttpStatus, Injectable, InternalServerErrorException } from '@nestjs/common';
+import {
+  ForbiddenException,
+  HttpException,
+  HttpStatus,
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreatePesquisaDto } from './dto/create-pesquisa.dto';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreatePerguntaDto } from '../perguntas/dto/create-pergunta.dto';
@@ -246,16 +253,166 @@ export class PesquisaService {
     }
   }
 
+  // Checar se a pesquisa já foi encerrada
+  async checkSurvey(
+    code,
+    date: Date,
+    prisma: Omit<
+      PrismaClient<Prisma.PrismaClientOptions, never, DefaultArgs>,
+      '$connect' | '$disconnect' | '$on' | '$transaction' | '$use' | '$extends'
+    >,
+  ) {
+    // Retorna só a data de término da pesquisa
+    const survey = await prisma.pesquisa.findUnique({
+      where: { codigo: code },
+      select: { dataTermino: true },
+    });
+
+    // Confere se a pesquisa existe
+    if (!survey) {
+      throw new NotFoundException(`Pesquisa de codigo ${code} não encontrada`);
+    }
+
+    const endDate = survey.dataTermino;
+    if (endDate > date) {
+      throw new ForbiddenException(`Pesquisa de codigo ${code} ainda não finalizada`);
+    }
+  }
+
+  async creatorResult(
+    idUser: number,
+    code: string,
+    prisma: Omit<
+      PrismaClient<Prisma.PrismaClientOptions, never, DefaultArgs>,
+      '$connect' | '$disconnect' | '$on' | '$transaction' | '$use' | '$extends'
+    >,
+  ) {
+    const creator = await prisma.pesquisa.findUnique({
+      where: {
+        codigo: code,
+        criador: idUser,
+      },
+    });
+
+    if (!creator) {
+      throw new ForbiddenException(`Resultado da pesquisa restrito ao criador somente`);
+    }
+  }
+
+  async votesByOptions(
+    code: string,
+    prisma: Omit<
+      PrismaClient<Prisma.PrismaClientOptions, never, DefaultArgs>,
+      '$connect' | '$disconnect' | '$on' | '$transaction' | '$use' | '$extends'
+    >,
+  ) {
+    try {
+      const query: any[] = await prisma.$queryRaw`
+      SELECT PE.id AS idQuestion, PE.texto AS textQuestion, O.id AS idOption, O.texto AS textOption, COUNT(OV.voto_id) AS countVotes, O.URLimagem AS imagemOption
+      FROM Pesquisa P
+      JOIN Pergunta PE ON P.id = PE.pesquisa_id
+      JOIN Opcao O ON PE.id = O.pergunta_id
+      LEFT JOIN Opcao_Votada OV ON O.id = OV.opcao_id
+      WHERE P.codigo = ${code}
+      GROUP BY PE.id, O.id;
+      `;
+
+      // Uso do reduce para agrupar o resultado da consulta por id da pergunta
+      const groupedByPergunta = query.reduce((acc, question) => {
+        const countVotes = Number(question.countVotes); // Convertendo tipo "2n" para number "2"
+
+        // Verifica se a pergunta já foi adicionada
+        const questionIndex = acc.findIndex((item) => item.texto === question.textQuestion);
+
+        // Caso a pergunta não tenha sido adicionada ainda
+        if (questionIndex === -1) {
+          acc.push({
+            texto: question.textQuestion,
+            opcoes: [{ textoOpcao: question.textOption, quantVotos: countVotes, URLimagem: question.imagemOption }],
+            total: countVotes,
+          });
+        } else {
+          // Atualiza a opção existente ou adiciona uma nova
+          const optionIndex = acc[questionIndex].opcoes.findIndex((opt) => opt.textoOpcao === question.textOption);
+
+          if (optionIndex === -1) {
+            acc[questionIndex].opcoes.push({
+              textoOpcao: question.textOption,
+              quantVotos: countVotes,
+              URLimagem: question.imagemOption,
+            });
+          } else {
+            acc[questionIndex].opcoes[optionIndex].quantVotos += countVotes;
+          }
+
+          // Atualiza o total de votos da pergunta
+          acc[questionIndex].total += countVotes;
+        }
+
+        return acc;
+      }, []);
+
+      // Adiciona a porcentagem e identifica a opção mais votada
+      groupedByPergunta.forEach((question) => {
+        let maxVotes = 0;
+
+        question.opcoes.forEach((opcao) => {
+          opcao.porcentagem = (opcao.quantVotos / question.total) * 100;
+
+          if (opcao.quantVotos > maxVotes) {
+            maxVotes = opcao.quantVotos;
+          }
+        });
+
+        question.opcoes.forEach((opcao) => {
+          opcao.opcaoMaisVotada = opcao.quantVotos === maxVotes;
+        });
+      });
+
+      return groupedByPergunta;
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      }
+    }
+  }
+
+  async getResultado(idUser: number, code: string) {
+    try {
+      const now = new Date(); // Pega a data e hora atual
+
+      return await this.prismaService.$transaction(async (prisma) => {
+        // Checa se é o criador que quer ver o resultado
+        await this.creatorResult(idUser, code, prisma);
+
+        // Checar se a pesquisa existe e se já foi encerrada
+        await this.checkSurvey(code, now, prisma);
+
+        // Pega os resultados da pesquisa
+        const votes = await this.votesByOptions(code, prisma);
+
+        return votes;
+      });
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        throw new HttpException(error.message, HttpStatus.CONFLICT);
+      } else if (error instanceof ForbiddenException || error instanceof NotFoundException) {
+        throw error;
+      } else throw new InternalServerErrorException('Erro interno ao criar uma participação');
+    }
+  }
+
   async findByCode(code: string) {
     try {
       //Puxar as informações de perguntas e opções
       const surverys = await this.prismaService.$queryRaw<SurveyQueryResult[]>`
         SELECT Pesquisa.codigo, Pesquisa.titulo, Pesquisa.descricao, Pesquisa.dataTermino, Pesquisa.criador, Pesquisa.ehPublico, Pesquisa.URLimagem, Pesquisa.ehVotacao, Pergunta.texto AS Pergunta, Opcao.texto AS Opcao
         FROM Pesquisa
-        JOIN Pergunta ON Pesquisa.id = Pergunta.pesquisa_id
-        JOIN Opcao ON Pergunta.id = Opcao.pergunta_id
-        WHERE Pesquisa.codigo = ${code}
+        LEFT JOIN Pergunta ON Pesquisa.id = Pergunta.pesquisa_id
+        LEFT JOIN Opcao ON Pergunta.id = Opcao.pergunta_id
+        WHERE Pesquisa.codigo = ${code};
         `;
+
+      console.log(surverys);
       // Transformar o resultado em um objeto com as perguntas e opções
       const result = surverys.reduce((acc, survey) => {
         // Verifica se a pesquisa já foi adicionada

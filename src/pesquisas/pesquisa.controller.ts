@@ -38,6 +38,13 @@ export class PesquisaController {
     return this.pesquisaService.findByCode(code);
   }
 
+  @Get('resultados/:code')
+  getResultados(@Param('code') code: string, @Req() req: any) {
+    const idUser = Number(req.user.sub);
+
+    return this.pesquisaService.getResultado(idUser, code);
+  }
+
   @UseGuards(AuthGuard)
   @Patch('arquivar/:id')
   updateArquivar(@Param('id', new ParseIntPipe()) idSurvey: number, @Req() req: any) {
