@@ -33,4 +33,11 @@ describe('OpcaoController', () => {
     expect(opcaoController).toBeDefined();
     expect(opcaoService).toBeDefined();
   });
+  describe('findOne', () => {
+    it('should return findOne opcao', async () => {
+      const opcao1 = await opcaoService.findOne(opcaoMock.id);
+
+      expect(opcao1).toEqual(opcaoMock);
+    });
+  });
 });
