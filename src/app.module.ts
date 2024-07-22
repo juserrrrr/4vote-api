@@ -17,7 +17,6 @@ import { UploadModule } from './modules/upload/upload.module';
 
 @Module({
   imports: [
-    AuthModule,
     OpcaoModule,
     OpcaoVotadaModule,
     ParticipacoesModule,

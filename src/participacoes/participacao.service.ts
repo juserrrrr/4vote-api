@@ -239,10 +239,11 @@ export class ParticipacaoService {
       LIMIT 1;
     `;
 
-    // Se for o primeiro voto daquela pesquisa, cria um Sal e o retorna
+    // Se for o primeiro voto daquela pesquisa, pega o Sal da env e o retorna
     if (hash.length == 0) {
       // Gerando o salt (32 bytes = 256 bits)
-      const salt = crypto.randomBytes(32).toString('hex');
+      const salt = process.env.SALT;
+      console.log(salt);
       return salt;
     }
 
@@ -263,6 +264,22 @@ export class ParticipacaoService {
     };
 
     return crypto.createHash('sha256').update(JSON.stringify(dataVote)).digest('hex');
+  }
+
+  async validateVote(
+    hash: string,
+    prisma: Omit<
+      PrismaClient<Prisma.PrismaClientOptions, never, DefaultArgs>,
+      '$connect' | '$disconnect' | '$on' | '$transaction' | '$use' | '$extends'
+    >,
+  ) {
+    const hashFound = prisma.voto.findFirst({
+      where: {
+        hash: hash,
+      },
+    });
+
+    console.log(hashFound);
   }
 
   // Método para criação do voto
