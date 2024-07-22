@@ -412,7 +412,6 @@ export class PesquisaService {
         WHERE Pesquisa.codigo = ${code};
         `;
 
-      console.log(surverys);
       // Transformar o resultado em um objeto com as perguntas e opções
       const result = surverys.reduce((acc, survey) => {
         // Verifica se a pesquisa já foi adicionada
