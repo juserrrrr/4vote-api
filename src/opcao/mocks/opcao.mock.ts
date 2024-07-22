@@ -1,8 +1,6 @@
 import { CreateOpcaoDto } from '../dto/create-opcao.dto';
 
-export const opcaoMock1: CreateOpcaoDto = {
-  texto: 'TextoOpcaoMock 1',
-};
-export const opcaoMock2: CreateOpcaoDto = {
-  texto: 'TextoOpcaoMock 2',
+export const opcaoMock: CreateOpcaoDto & { id: number } = {
+  id: 1,
+  texto: 'Texto Opcao Mock',
 };
