@@ -38,6 +38,7 @@ export class PesquisaController {
     return this.pesquisaService.findByCode(code);
   }
 
+  @UseGuards(AuthGuard)
   @Get('resultados/:code')
   getResultados(@Param('code') code: string, @Req() req: any) {
     const idUser = Number(req.user.sub);
@@ -50,5 +51,10 @@ export class PesquisaController {
   updateArquivar(@Param('id', new ParseIntPipe()) idSurvey: number, @Req() req: any) {
     const idUser = Number(req.user.sub);
     return this.pesquisaService.updateArquivar(idSurvey, idUser);
+  }
+
+  @Get('auditar/:code')
+  auditSurvey(@Param('code') code: string) {
+    return this.pesquisaService.auditSurvey(code);
   }
 }
