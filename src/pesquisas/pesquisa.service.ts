@@ -17,6 +17,7 @@ import { filterPesquisaDto } from './dto/filter-pesquisa.dto';
 import * as crypto from 'crypto';
 
 interface SurveyQueryResult {
+  id: number;
   codigo: string;
   titulo: string;
   descricao: string;
@@ -25,7 +26,9 @@ interface SurveyQueryResult {
   URLimagem: string;
   ehVotacao: boolean;
   Pergunta: string;
+  PerguntaId: number;
   Opcao: string;
+  OpcaoId: number;
 }
 
 interface SurveyFilterResult {
@@ -413,14 +416,13 @@ export class PesquisaService {
     try {
       //Puxar as informações de perguntas e opções
       const surverys = await this.prismaService.$queryRaw<SurveyQueryResult[]>`
-        SELECT Pesquisa.codigo, Pesquisa.titulo, Pesquisa.descricao, Pesquisa.dataTermino, Pesquisa.criador, Pesquisa.ehPublico, Pesquisa.URLimagem, Pesquisa.ehVotacao, Pergunta.texto AS Pergunta, Opcao.texto AS Opcao
+        SELECT Pesquisa.id, Pesquisa.codigo, Pesquisa.titulo, Pesquisa.descricao, Pesquisa.dataTermino, Pesquisa.criador, Pesquisa.ehPublico, Pesquisa.URLimagem, Pesquisa.ehVotacao, Pergunta.texto AS Pergunta, Pergunta.id AS PerguntaId, Opcao.id  AS OpcaoId, Opcao.texto AS Opcao
         FROM Pesquisa
         LEFT JOIN Pergunta ON Pesquisa.id = Pergunta.pesquisa_id
         LEFT JOIN Opcao ON Pergunta.id = Opcao.pergunta_id
         WHERE Pesquisa.codigo = ${code};
         `;
 
-      console.log(surverys);
       // Transformar o resultado em um objeto com as perguntas e opções
       const result = surverys.reduce((acc, survey) => {
         // Verifica se a pesquisa já foi adicionada
@@ -428,6 +430,7 @@ export class PesquisaService {
         // Caso a pesquisa não tenha sido adicionada ainda ela é adicionada
         if (surveyIndex === -1) {
           acc.push({
+            id: survey.id,
             codigo: survey.codigo,
             titulo: survey.titulo,
             descricao: survey.descricao,
@@ -435,7 +438,9 @@ export class PesquisaService {
             ehPublico: survey.ehPublico,
             URLimagem: survey.URLimagem,
             ehVotacao: survey.ehVotacao,
-            perguntas: [{ texto: survey.Pergunta, opcoes: [survey.Opcao] }],
+            perguntas: [
+              { id: survey.PerguntaId, texto: survey.Pergunta, opcoes: [{ id: survey.OpcaoId, texto: survey.Opcao }] },
+            ],
           });
           // Caso a pesquisa já tenha sido adicionada, é adicionada a pergunta e a opção
         } else {
@@ -443,10 +448,14 @@ export class PesquisaService {
           const questionIndex = acc[surveyIndex].perguntas.findIndex((question) => question.texto === survey.Pergunta);
           // Caso a pergunta não tenha sido adicionada ainda ela é adicionada
           if (questionIndex === -1) {
-            acc[surveyIndex].perguntas.push({ texto: survey.Pergunta, opcoes: [survey.Opcao] });
+            acc[surveyIndex].perguntas.push({
+              id: survey.OpcaoId,
+              texto: survey.Pergunta,
+              opcoes: [{ id: survey.OpcaoId, texto: survey.Opcao }],
+            });
             // Caso a pergunta já tenha sido adicionada, é adicionada a opção
           } else {
-            acc[surveyIndex].perguntas[questionIndex].opcoes.push(survey.Opcao);
+            acc[surveyIndex].perguntas[questionIndex].opcoes.push({ id: survey.OpcaoId, texto: survey.Opcao });
           }
         }
         return acc;
