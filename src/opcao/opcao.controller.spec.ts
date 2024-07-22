@@ -39,5 +39,12 @@ describe('OpcaoController', () => {
 
       expect(opcao1).toEqual(opcaoMock);
     });
+    it('should return different findOne opcao', async () => {
+      const opcao1 = await opcaoService.findOne(opcaoMock.id);
+      const opcao2 = { id: 2, texto: 'Texto opcao 2' };
+      jest.spyOn(opcaoService, 'findOne').mockResolvedValue(opcao2);
+
+      expect(opcao1).not.toEqual(opcao2);
+    });
   });
 });
