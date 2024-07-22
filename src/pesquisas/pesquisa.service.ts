@@ -14,7 +14,8 @@ import { Prisma, PrismaClient } from '@prisma/client';
 import { DefaultArgs } from '@prisma/client/runtime/library';
 import { CreateTagDto } from '../tag/dto/create-tag.dto';
 import { filterPesquisaDto } from './dto/filter-pesquisa.dto';
-import * as crypto from 'crypto';
+import { MailerService } from '../mailer/mailer.service';
+import { UsuariosService } from '../usuarios/usuarios.service';
 
 interface SurveyQueryResult {
   id: number;
@@ -50,7 +51,11 @@ interface Vote {
 
 @Injectable()
 export class PesquisaService {
-  constructor(private readonly prismaService: PrismaService) {}
+  constructor(
+    private readonly prismaService: PrismaService,
+    private readonly mailerService: MailerService,
+    private readonly userService: UsuariosService,
+  ) {}
 
   // Função para gerar um código aleatório
   // Necessario verificar um solução mais eficiente, segura e escalável
@@ -223,7 +228,7 @@ export class PesquisaService {
       const codigo = await this.generateUniqueCode();
       // Separa as perguntas, tags e os demais dados da pesquisa
       const { perguntas, tags, ...pesquisa } = createPesquisaDto;
-      return await this.prismaService.$transaction(async (prisma) => {
+      const responseTransaction = await this.prismaService.$transaction(async (prisma) => {
         // Cria a pesquisa e retorna o código
         const surveyId = await this.createSurvey(pesquisa, idUser, codigo, prisma);
         // Cria as perguntas e retorna os IDs
@@ -241,9 +246,29 @@ export class PesquisaService {
           await this.createSyncTagSurvery(surveyId, idsTags, prisma);
         }
 
-        const { titulo } = pesquisa;
-        return { codigo, titulo };
+        const { email, nome } = await this.userService.findMe(idUser);
+
+        const { titulo, ehPublico } = pesquisa;
+        return { codigo, titulo, email, nome, ehPublico };
       });
+      //Enviar email se for privada
+      if (!responseTransaction.ehPublico) {
+        const template = this.mailerService.loadTemplate('pesquisa-criada');
+        const replacements = {
+          titulo: responseTransaction.titulo,
+          codigo: responseTransaction.codigo,
+        };
+
+        const emailHtml = this.mailerService.template(template, replacements);
+
+        await this.mailerService.sendEmail({
+          recipients: [{ name: responseTransaction.nome, address: responseTransaction.email }],
+          subject: 'Pesquisa privada criada com sucesso',
+          html: emailHtml,
+        });
+      }
+
+      return responseTransaction;
     } catch (error) {
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
         throw new HttpException(error.message, HttpStatus.CONFLICT);
