@@ -53,7 +53,7 @@ export class UsuariosService {
       if (updatedUsuario === 0) {
         throw new HttpException('Usuário não encontrado', HttpStatus.NOT_FOUND);
       }
-      return updateUsuarioDto;
+      return newDto;
     } catch (e) {
       throw new ConflictException('Email já existe');
     }
