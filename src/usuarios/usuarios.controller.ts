@@ -1,7 +1,9 @@
-import { Controller, Get, Body, Patch, UseGuards, Req } from '@nestjs/common';
+import { Controller, Get, Body, Patch, UseGuards, Req, UseInterceptors, UploadedFile } from '@nestjs/common';
 import { UsuariosService } from './usuarios.service';
 import { UpdateUsuarioDto } from './dto/update-usuario.dto';
 import { AuthGuard } from '../auth/auth.guard';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { FileDTO } from '../modules/upload/upload.dto';
 
 @Controller('usuarios')
 export class UsuariosController {
@@ -16,8 +18,9 @@ export class UsuariosController {
 
   @UseGuards(AuthGuard)
   @Patch('me')
-  update(@Req() req: any, @Body() updateUsuarioDto: UpdateUsuarioDto) {
+  @UseInterceptors(FileInterceptor('file'))
+  update(@Req() req: any, @UploadedFile() file: FileDTO, @Body() updateUsuarioDto: UpdateUsuarioDto) {
     const userId = req.user.sub;
-    return this.usuariosService.update(userId, updateUsuarioDto);
+    return this.usuariosService.update(userId, updateUsuarioDto, file);
   }
 }

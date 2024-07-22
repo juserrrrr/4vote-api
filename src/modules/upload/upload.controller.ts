@@ -1,4 +1,4 @@
-import { Body, Controller, Post, UploadedFile, UseInterceptors } from '@nestjs/common';
+import { Controller, Post, UploadedFile, UseInterceptors } from '@nestjs/common';
 import { UploadService } from './upload.service';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { FileDTO } from './upload.dto';
@@ -9,8 +9,8 @@ export class UploadController {
 
   @Post('/')
   @UseInterceptors(FileInterceptor('file'))
-  async uploadFile(@UploadedFile() file: FileDTO, @Body('bucketName') bucketName: string) {
-    const result = await this.uploadService.upload(file, bucketName);
+  async uploadFile(@UploadedFile() file: FileDTO) {
+    const result = await this.uploadService.upload(file);
     return result;
   }
 }

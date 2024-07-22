@@ -4,14 +4,15 @@ import { createClient } from '@supabase/supabase-js';
 
 @Injectable()
 export class UploadService {
-  private supabaseURL = 'https://nydqbchcfgkevfdmbifx.supabase.co';
-  private supabaseKEY =
-    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im55ZHFiY2hjZmdrZXZmZG1iaWZ4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjA0NjE0MDksImV4cCI6MjAzNjAzNzQwOX0.BJzPGLiJcIotjfUjXRONQMjQFKLMKvCwc1MaYMTJBIM';
+  private supabaseURL = process.env.SUPERBASE_URL;
+  private supabaseKEY = process.env.SUPERBASE_KEY;
   private supabase = createClient(this.supabaseURL, this.supabaseKEY, {
     auth: { persistSession: false },
   });
 
-  async upload(file: FileDTO, bucketName: string) {
+  async upload(file: FileDTO) {
+    console.log('recebi');
+    const bucketName = 'Files4vote';
     const { data, error } = await this.supabase.storage
       .from(bucketName)
       .upload(file.originalname, file.buffer, { upsert: true });
@@ -19,7 +20,11 @@ export class UploadService {
     if (error) {
       throw new Error(`Erro ao fazer upload do arquivo: ${error.message}`);
     }
+    const urlData = this.supabase.storage.from(bucketName).getPublicUrl(file.originalname);
 
-    return data;
+    return {
+      ...data,
+      url: urlData.data.publicUrl,
+    };
   }
 }

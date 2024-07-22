@@ -11,7 +11,7 @@ model Opcao {
   id           Int            @id @default(autoincrement())
   pergunta_id  Int
   texto        String         @db.VarChar(255)
-  quantVotos   Int            @default(0)
+  URLimagem    String?        @db.VarChar(255)
   Pergunta     Pergunta       @relation(fields: [pergunta_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "Pergunta_Opcao")
   Opcao_Votada Opcao_Votada[]
 
@@ -35,7 +35,7 @@ model Participacao {
   Pesquisa    Pesquisa @relation(fields: [pesquisa_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "Participacao_Pesquisa")
   Usuario     Usuario  @relation(fields: [usuario_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "Usuario_Participacao")
 
-  @@unique(name: "participation", fields: [usuario_id, pesquisa_id]) 
+  @@unique(name: "participation", fields: [usuario_id, pesquisa_id])
   @@index([pesquisa_id], map: "Participacao_Pesquisa")
   @@index([usuario_id], map: "Usuario_Participacao")
 }
@@ -43,7 +43,6 @@ model Participacao {
 model Pergunta {
   id          Int      @id @default(autoincrement())
   texto       String   @db.VarChar(255)
-  URLimagem   String?  @db.VarChar(255)
   pesquisa_id Int
   Opcao       Opcao[]
   Pesquisa    Pesquisa @relation(fields: [pesquisa_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "Pesquisa_Pergunta")
@@ -88,15 +87,15 @@ model Tag_Pesquisa {
 }
 
 model Usuario {
-  id           Int            @id @default(autoincrement())
-  nome         String         @db.VarChar(255)
-  email        String         @unique(map: "Usuario_ak_email") @db.VarChar(255)
-  cpf          String         @unique(map: "Usuario_ak_cpf") @db.VarChar(14)
-  senha        String         @db.VarChar(255)
-  validado  Boolean @default(false)
-  URLimagem    String?        @db.VarChar(255)
-  Participacao Participacao[]
-  Pesquisa     Pesquisa[]
+  id              Int               @id @default(autoincrement())
+  nome            String            @db.VarChar(255)
+  email           String            @unique(map: "Usuario_ak_email") @db.VarChar(255)
+  cpf             String            @unique(map: "Usuario_ak_cpf") @db.VarChar(14)
+  senha           String            @db.VarChar(255)
+  validado        Boolean           @default(false)
+  URLimagem       String?           @db.VarChar(255)
+  Participacao    Participacao[]
+  Pesquisa        Pesquisa[]
   CodigoValidacao CodigoValidacao[]
 }
 
@@ -108,10 +107,10 @@ model Voto {
 }
 
 model CodigoValidacao {
-  id        Int      @id @default(autoincrement())
+  id        Int     @id @default(autoincrement())
   usuarioId Int
-  codigo    String   @unique(map: "codigo_ak_usuario") @db.VarChar(255)
-  usuario   Usuario  @relation(fields: [usuarioId], references: [id])
+  codigo    String  @unique(map: "codigo_ak_usuario") @db.VarChar(255)
+  usuario   Usuario @relation(fields: [usuarioId], references: [id])
 
   @@index([usuarioId])
 }
