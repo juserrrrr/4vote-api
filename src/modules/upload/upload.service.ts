@@ -11,7 +11,6 @@ export class UploadService {
   });
 
   async upload(file: FileDTO) {
-    console.log('recebi');
     const bucketName = 'Files4vote';
     const { data, error } = await this.supabase.storage
       .from(bucketName)
