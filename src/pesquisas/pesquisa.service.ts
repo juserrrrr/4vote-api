@@ -661,7 +661,7 @@ export class PesquisaService {
         });
 
         const validSurvey = results.every((result) => result); //Verifica se tudo deu true (Pesquisa validada)
-        return validSurvey ? 'Pesquisa sem fraudes' : 'Pesquisa Fraudada!';
+        return validSurvey ? { message: 'Pesquisa sem fraudes' } : { message: 'Pesquisa Fraudada!' };
       });
     } catch (error) {
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
