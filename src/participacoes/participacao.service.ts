@@ -12,10 +12,16 @@ import { Prisma, PrismaClient } from '@prisma/client';
 import { DefaultArgs } from '@prisma/client/runtime/library';
 import { CreateOpcaoVotadaDto } from '../opcaoVotada/dto/create-opcaovotada.dto';
 import * as crypto from 'crypto';
+import { MailerService } from '../mailer/mailer.service';
+import { UsuariosService } from '../usuarios/usuarios.service';
 
 @Injectable()
 export class ParticipacaoService {
-  constructor(private readonly prismaService: PrismaService) {}
+  constructor(
+    private readonly prismaService: PrismaService,
+    private readonly mailerService: MailerService,
+    private readonly userService: UsuariosService,
+  ) {}
 
   // Checar se a pesquisa já foi encerrada
   async checkSurvey(
@@ -262,7 +268,6 @@ export class ParticipacaoService {
       optionsVotedIDs,
     };
 
-    console.log(dataVote);
 
     return crypto.createHash('sha256').update(JSON.stringify(dataVote)).digest('hex');
   }
@@ -317,7 +322,7 @@ export class ParticipacaoService {
   }
 
   // Criação da participação em uma pesquisa e retorno da hash do voto
-  async create(createParticipacaoDto: CreateParticipacaoDto, idUser: number, idSurvey: number): Promise<string> {
+  async create(createParticipacaoDto: CreateParticipacaoDto, idUser: number, idSurvey: number) {
     try {
       const { voto } = createParticipacaoDto;
       const optionsVoted = voto.opcoesVotadas; // Pegando opções votadas
@@ -326,7 +331,7 @@ export class ParticipacaoService {
       // Remove os milissegundos
       now.setMilliseconds(0);
 
-      return await this.prismaService.$transaction(async (prisma) => {
+      const responseTransaction = await this.prismaService.$transaction(async (prisma) => {
         // Checar se a pesquisa existe e se já foi encerrada
         await this.checkSurvey(idSurvey, now, prisma);
 
@@ -358,8 +363,25 @@ export class ParticipacaoService {
         // Criação das Opções Votadas
         await this.createOptionsVoted(optionsVoted, idVote, prisma);
 
-        return hash;
+        const { email, nome } = await this.userService.findMe(idUser);
+
+        return { hash, email, nome };
       });
+
+      const template = this.mailerService.loadTemplate('codigo-voto');
+      const replacements = {
+        chave: responseTransaction.hash,
+      };
+
+      const emailHtml = this.mailerService.template(template, replacements);
+
+      await this.mailerService.sendEmail({
+        recipients: [{ name: responseTransaction.nome, address: responseTransaction.email }],
+        subject: 'Voto efetiado com sucesso',
+        html: emailHtml,
+      });
+
+      return responseTransaction;
     } catch (error) {
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
         throw new HttpException(error.message, HttpStatus.CONFLICT);
