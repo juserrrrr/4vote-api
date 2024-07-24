@@ -566,9 +566,9 @@ export class PesquisaService {
     }
   }
 
-  async updateArquivar(idSurvey: number, idUser: number) {
+  async updateArquivar(codeSurvey: string, idUser: number) {
     const survery = await this.prismaService.pesquisa.findUnique({
-      where: { id: idSurvey },
+      where: { codigo: codeSurvey },
       select: { criador: true, arquivado: true },
     });
     // Verifica se a pesquisa existe
@@ -586,7 +586,7 @@ export class PesquisaService {
     // Arquiva a pesquisa
     try {
       const surveryArchived = await this.prismaService.pesquisa.update({
-        where: { id: idSurvey },
+        where: { codigo: codeSurvey },
         data: { arquivado: true },
         select: { titulo: true, arquivado: true },
       });
