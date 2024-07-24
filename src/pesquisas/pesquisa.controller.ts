@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param, ParseIntPipe, Patch, Req, UseGuards, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Patch, Req, UseGuards, Query } from '@nestjs/common';
 import { PesquisaService } from './pesquisa.service';
 import { CreatePesquisaDto } from './dto/create-pesquisa.dto';
 import { AuthGuard } from '../auth/auth.guard';
@@ -47,12 +47,13 @@ export class PesquisaController {
   }
 
   @UseGuards(AuthGuard)
-  @Patch('arquivar/:id')
-  updateArquivar(@Param('id', new ParseIntPipe()) idSurvey: number, @Req() req: any) {
+  @Patch('arquivar/:code')
+  updateArquivar(@Param('code') codeSUrvey: string, @Req() req: any) {
     const idUser = Number(req.user.sub);
-    return this.pesquisaService.updateArquivar(idSurvey, idUser);
+    return this.pesquisaService.updateArquivar(codeSUrvey, idUser);
   }
 
+  @UseGuards(AuthGuard)
   @Get('auditar/:code')
   auditSurvey(@Param('code') code: string) {
     return this.pesquisaService.auditSurvey(code);

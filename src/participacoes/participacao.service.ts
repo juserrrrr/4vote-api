@@ -76,7 +76,7 @@ export class ParticipacaoService {
       },
     });
     if (query) {
-      throw new ForbiddenException(`Usuário de ID ${idUser} já participou da pesquisa de id ${idSurvey}`);
+      throw new ForbiddenException(`Você já participou dessa pesquisa!`);
     }
   }
 
@@ -267,7 +267,6 @@ export class ParticipacaoService {
       date,
       optionsVotedIDs,
     };
-
 
     return crypto.createHash('sha256').update(JSON.stringify(dataVote)).digest('hex');
   }
