@@ -546,6 +546,7 @@ export class PesquisaService {
         AND pt.usuario_id = ${idUser}
         `;
     }
+
     if (criador) {
       querySql = Prisma.sql`
         ${querySql}
